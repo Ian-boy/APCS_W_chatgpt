@@ -60,7 +60,7 @@ void init_player(Player *player) {
 // 產生敵人
 Enemy generate_enemy() {
     Enemy enemy;
-    int type = rand() % 3;
+    int type = rand() % 4;
     if (type == 0) {
         sprintf(enemy.name, "史萊姆");
         enemy.hp = 50;
@@ -130,7 +130,7 @@ void battle(Player *player) {
             enemy.hp -= player->attack;
         } else if (choice == 2) {
             Skill skills[] = {
-                {"火球", 1.5, 0, 50},
+                {"火球", 1.75, 0, 50},
                 {"雷擊", 2.0, 0, 80},
                 {"治癒", 0.0, 30, 70},
                 {"冰凍", 1.2, 0, 60},
@@ -178,7 +178,7 @@ void battle(Player *player) {
         printf("\n你被打敗了...\n");
         printf("金幣歸零，你復活了!\n");
         player->gold = 0;
-        player->hp = player->max_hp / 2;
+        player->hp = player->max_hp / 1.5;
     }
 }
 
