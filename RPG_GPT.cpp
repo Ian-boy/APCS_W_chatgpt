@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-// 角色結構
+// 玩家結構
 typedef struct {
     char name[50];
     int level;
@@ -60,7 +60,7 @@ void init_player(Player *player) {
 // 產生敵人
 Enemy generate_enemy() {
     Enemy enemy;
-    int type = rand() % 4;
+    int type = rand() % 3;
     if (type == 0) {
         sprintf(enemy.name, "史萊姆");
         enemy.hp = 50;
@@ -77,8 +77,8 @@ Enemy generate_enemy() {
         sprintf(enemy.name, "巨人");
         enemy.hp = 200;
         enemy.attack = 10;
-        enemy.exp_reward = 55;
-        enemy.gold_reward = 25;
+        enemy.exp_reward = 50;
+        enemy.gold_reward = 30;
     } else {
         sprintf(enemy.name, "狼人");
         enemy.hp = 120;
@@ -111,7 +111,6 @@ void level_up(Player *player) {
                player->level, player->max_hp, player->attack);
     }
 }
-
 // 戰鬥系統
 void battle(Player *player) {
     Enemy enemy = generate_enemy();
@@ -180,24 +179,73 @@ void battle(Player *player) {
         printf("\n你被打敗了...\n");
     }
 }
-
-// 商店
+// 商店系統
 void shop(Player *player) {
-    Weapon weapons[] = {{"鐵劍", 5, 50}, {"鋼劍", 10, 100}, {"魔劍", 20, 200}};
-    Skill skills[] = {{"火球", 1.5, 0, 50}, {"雷擊", 2.0, 0, 80}, {"治癒", 0, 30, 70}};
+    Weapon weapons[] = {
+        {"鐵劍", 5, 50},
+        {"鋼劍", 10, 100},
+        {"魔劍", 20, 200}
+    };
 
-    printf("\n--- 商店 ---\n1. 買武器\n2. 買技能\n3. 離開\n");
-    int choice;
-    scanf("%d", &choice);
-    if (choice == 1) {
-        printf("選擇武器:\n1. 鐵劍 (+5 攻擊)\n2. 鋼劍 (+10 攻擊)\n");
-        int w;
-        scanf("%d", &w);
-        player->attack += weapons[w - 1].attack_bonus;
-        player->gold -= weapons[w - 1].price;
+    Skill skills[] = {
+        {"火球", 1.5, 0, 50},
+        {"雷擊", 2.0, 0, 80},
+        {"治癒", 0.0, 30, 70},
+        {"冰凍", 1.2, 0, 60},
+        {"爆裂擊", 2.5, 0, 100}
+    };
+
+    while (1) {
+        printf("\n--- 商店 ---\n");
+        printf("1. 買武器\n2. 買技能\n3. 離開\n");
+        int choice;
+        scanf("%d", &choice);
+
+        if (choice == 1) {
+            printf("選擇武器:\n");
+            for (int i = 0; i < 3; i++) {
+                printf("%d. %s (+%d 攻擊) - %d 金幣\n", i + 1, weapons[i].name, weapons[i].attack_bonus, weapons[i].price);
+            }
+            printf("0. 取消\n");
+
+            int w_choice;
+            scanf("%d", &w_choice);
+            if (w_choice >= 1 && w_choice <= 3) {
+                if (player->gold >= weapons[w_choice - 1].price) {
+                    player->attack = player->base_attack + weapons[w_choice - 1].attack_bonus;
+                    player->gold -= weapons[w_choice - 1].price;
+                    printf("你購買並裝備了 %s!\n", weapons[w_choice - 1].name);
+                } else {
+                    printf("金幣不足!\n");
+                }
+            }
+        } else if (choice == 2) {
+            printf("選擇技能:\n");
+            for (int i = 0; i < 5; i++) {
+                if (!player->skills[i]) {
+                    printf("%d. %s (%.0f%% 傷害) - %d 金幣\n", i + 1, skills[i].name, skills[i].attack_multiplier * 100, skills[i].price);
+                }
+            }
+            printf("0. 取消\n");
+
+            int s_choice;
+            scanf("%d", &s_choice);
+            if (s_choice >= 1 && s_choice <= 5) {
+                if (player->gold >= skills[s_choice - 1].price) {
+                    player->skills[s_choice - 1] = 1;
+                    player->gold -= skills[s_choice - 1].price;
+                    printf("你學會了 %s!\n", skills[s_choice - 1].name);
+                } else {
+                    printf("金幣不足!\n");
+                }
+            }
+        } else {
+            break;
+        }
     }
 }
 
+// 主函數
 int main() {
     srand(time(NULL));
     Player player;
@@ -213,3 +261,4 @@ int main() {
     }
     return 0;
 }
+
