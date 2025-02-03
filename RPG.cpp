@@ -180,16 +180,16 @@ int main() {
     while (1) {
         showStatus(&player);
         printf("\n選擇行動:\n");
-        printf("1. 戰鬥\n");
-        printf("2. 退出遊戲\n");
+        printf("2. 戰鬥\n");
+        printf("9. 退出遊戲\n");
         printf("請輸入選擇: ");
         scanf("%d", &choice);
 
-        if (choice == 1) {
+        if (choice == 2) {
             Enemy enemy;
             initEnemy(&enemy, player.level);
             battle(&player, &enemy);
-        } else if (choice == 2) {
+        } else if (choice == 9) {
             printf("退出遊戲。\n");
             break;
         } else {
