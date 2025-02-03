@@ -305,9 +305,8 @@ int main() {
         printf("\n1. 探索地圖\n2. 商店\n");
         int choice;
         scanf("%d", &choice);
-        if (choice == 1) battle(&player);
+        if (choice == 1) explore(&player);
         else if (choice == 2) shop(&player);
-        else if (choice == 3) explore(&player);
     }
     return 0;
 }
