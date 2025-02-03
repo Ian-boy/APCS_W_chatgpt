@@ -98,7 +98,7 @@ Enemy generate_enemy() {
 // 顯示狀態
 void show_status(Player *player) {
     printf("\n--- %s 的狀態 ---\n", player->name);
-    printf("等級: %d  HP: %d/%d  攻擊力: %d  金錢: %d  經驗值: %d/%d\n",
+    printf("等級: %d  HP❤️: %d/%d  攻擊力🥊: %d  金錢💰: %d  經驗值: %d/%d\n",
            player->level, player->hp, player->max_hp, player->attack, player->gold,
            player->exp, player->next_level_exp);
 }
@@ -203,7 +203,7 @@ void battle(Player *player) {
 // 商店系統
 void shop(Player *player) {
     Weapon weapons[] = {
-        {"木劍", 1, 10},
+        {"木劍️", 1, 10},
         {"銅劍", 3, 30},
         {"鐵劍", 5, 50},
         {"鋼劍", 10, 100},
@@ -211,16 +211,16 @@ void shop(Player *player) {
     };
 
     Skill skills[] = {
-        {"火球", 1.5, 0, 50},
-        {"雷擊", 2.0, 0, 80},
+        {"火球🔥", 1.5, 0, 50},
+        {"雷擊🌩", 2.0, 0, 80},
         {"治癒", 0.0, 30, 70},
-        {"冰凍", 1.2, 0, 60},
+        {"冰凍🧊", 1.2, 0, 60},
         {"爆裂擊", 2.5, 0, 100}
     };
 
     while (1) {
         printf("\n--- 商店 ---\n");
-        printf("1. 買武器\n2. 買技能\n3. 離開\n");
+        printf("1. 買武器⚔️\n2. 買技能🔥\n3. 離開\n");
         int choice;
         scanf("%d", &choice);
 
@@ -275,12 +275,12 @@ int main() {
     init_player(&player);
     while (1) {
         show_status(&player);
-        printf("\n1. 戰鬥\n2. 商店\n3. 離開\n");
+        level_up(&player);
+        printf("\n1. 戰鬥\n2. 商店\n");
         int choice;
         scanf("%d", &choice);
         if (choice == 1) battle(&player);
         else if (choice == 2) shop(&player);
-        else break;
     }
     return 0;
 }
