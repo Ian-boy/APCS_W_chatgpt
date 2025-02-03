@@ -60,7 +60,7 @@ void init_player(Player *player) {
 // 產生敵人
 Enemy generate_enemy() {
     Enemy enemy;
-    int type = rand() % 4;
+    int type = rand() % 5;
     if (type == 0) {
         sprintf(enemy.name, "史萊姆");
         enemy.hp = 50;
@@ -79,6 +79,12 @@ Enemy generate_enemy() {
         enemy.attack = 9;
         enemy.exp_reward = 80;
         enemy.gold_reward = 40;
+    } else if (type == 3) {
+        sprintf(enemy.name, "大富翁哥布林");
+        enemy.hp = 90;
+        enemy.attack = 9;
+        enemy.exp_reward = 40;
+        enemy.gold_reward = 70;
     } else {
         sprintf(enemy.name, "狼人");
         enemy.hp = 120;
@@ -111,9 +117,12 @@ void level_up(Player *player) {
                player->level, player->max_hp, player->attack);
     }
 }
+
 // 戰鬥系統
 void battle(Player *player) {
     Enemy enemy = generate_enemy();
+    int frozen_turn = 0;
+
     printf("\n你遇到了 %s! (HP: %d, 攻擊力: %d)\n", enemy.name, enemy.hp, enemy.attack);
 
     while (enemy.hp > 0 && player->hp > 0) {
@@ -157,6 +166,13 @@ void battle(Player *player) {
                     int damage = player->attack * skills[skill_choice - 1].attack_multiplier;
                     printf("你施放 %s，造成 %d 傷害!\n", skills[skill_choice - 1].name, damage);
                     enemy.hp -= damage;
+                    if (skill_choice == 4 && (rand() % 2 == 0)) { // 冰凍 50% 機率
+                        printf("冰凍成功! %s 無法行動 1 回合!\n", enemy.name);
+                        frozen_turn = 1;
+                    }
+                    else {
+                        printf("冰凍失敗! %s 仍然可以攻擊!\n", enemy.name);
+                    }
                 }
             } else {
                 printf("無效選擇!\n");
@@ -164,9 +180,12 @@ void battle(Player *player) {
             }
         }
 
-        if (enemy.hp > 0) {
+        if (enemy.hp > 0 && !frozen_turn) {
             printf("%s 反擊，對你造成 %d 傷害!\n", enemy.name, enemy.attack);
             player->hp -= enemy.attack;
+        } else if (frozen_turn) {
+            printf("%s 被冰凍，無法攻擊!\n", enemy.name);
+            frozen_turn = 0; // 冰凍效果只持續一回合
         }
     }
 
@@ -178,13 +197,14 @@ void battle(Player *player) {
         printf("\n你被打敗了...\n");
         printf("金幣歸零，你復活了!\n");
         player->gold = 0;
-        player->hp = player->max_hp /1.2;
+        player->hp = player->max_hp / 1.2;
     }
 }
-
 // 商店系統
 void shop(Player *player) {
     Weapon weapons[] = {
+        {"木劍", 1, 10},
+        {"銅劍", 3, 30},
         {"鐵劍", 5, 50},
         {"鋼劍", 10, 100},
         {"魔劍", 20, 200}
@@ -215,7 +235,7 @@ void shop(Player *player) {
             scanf("%d", &w_choice);
             if (w_choice >= 1 && w_choice <= 3) {
                 if (player->gold >= weapons[w_choice - 1].price) {
-                    player->attack = player->base_attack + weapons[w_choice - 1].attack_bonus;
+                    player->attack = player->attack + weapons[w_choice - 1].attack_bonus;
                     player->gold -= weapons[w_choice - 1].price;
                     printf("你購買並裝備了 %s!\n", weapons[w_choice - 1].name);
                 } else {
@@ -264,4 +284,3 @@ int main() {
     }
     return 0;
 }
-
