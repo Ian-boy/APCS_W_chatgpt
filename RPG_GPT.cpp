@@ -174,11 +174,14 @@ void battle(Player *player) {
         printf("\n你打敗了 %s!\n", enemy.name);
         player->exp += enemy.exp_reward;
         player->gold += enemy.gold_reward;
-        level_up(player);
     } else {
         printf("\n你被打敗了...\n");
+        printf("金幣歸零，你復活了!\n");
+        player->gold = 0;
+        player->hp = player->max_hp / 2;
     }
 }
+
 // 商店系統
 void shop(Player *player) {
     Weapon weapons[] = {
