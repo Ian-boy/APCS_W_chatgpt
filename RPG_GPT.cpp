@@ -267,20 +267,41 @@ void shop(Player *player) {
         }
     }
 }
+// 地圖探索系統
+void explore(Player *player) {
+    printf("\n=== 你開始探索地圖... ===\n");
 
+    int event = rand() % 4; // 0: 遇敵, 1: 發現寶箱, 2: 無事發生
+
+    if (event == 0) {
+        printf("你遇到了一個敵人!\n");
+        battle(player);
+    } else if (event == 1) {
+        int gold_found = (rand() % 50) + 10; // 獲得 10~50 金幣
+        printf("你發現了一個寶箱! 內有 %d 金幣!\n", gold_found);
+        player->gold += gold_found;
+    } else if (event == 2) {
+        int hp_found = (rand() % 40) + 10; // 獲得 10~50 金幣
+        printf("你發現了一個無人的營帳! \n你在裡面休息了一晚上，回復了 %d HP❤️!\n", hp_found);
+        player->hp += hp_found;
+    } else {
+        printf("你探索了一會兒，但什麼都沒發現。\n");
+    }
+}
 // 主函數
 int main() {
     srand(time(NULL));
     Player player;
     init_player(&player);
     while (1) {
-        show_status(&player);
         level_up(&player);
-        printf("\n1. 戰鬥\n2. 商店\n");
+        show_status(&player);
+        printf("\n1. 探索地圖\n2. 商店\n");
         int choice;
         scanf("%d", &choice);
         if (choice == 1) battle(&player);
         else if (choice == 2) shop(&player);
+        else if (choice == 3) explore(&player);
     }
     return 0;
 }
