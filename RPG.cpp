@@ -17,8 +17,10 @@ typedef struct {
 typedef struct {
     char name[20];  // 敵人名稱
     int hp;         // 生命值
+    int max_hp;     // 最大生命值
     int atk;        // 攻擊力
-    int def;        // 防禦力
+    int def;        // 基礎防禦力
+    int current_def;// 當前防禦力
     int exp;        // 提供的經驗值
 } Enemy;
 
@@ -37,9 +39,11 @@ void initPlayer(Character *player) {
 // 初始化敵人
 void initEnemy(Enemy *enemy, int level) {
     sprintf(enemy->name, "敵人 Lv.%d", level);
-    enemy->hp = 50 + (level * 10);
+    enemy->max_hp = 50 + (level * 10);
+    enemy->hp = enemy->max_hp;
     enemy->atk = 10 + (level * 5);
-    enemy->def = 5 + (level * 3);
+    enemy->def = 5 + (level * 3);  // 基礎防禦力
+    enemy->current_def = enemy->def;  // 當前防禦力
     enemy->exp = 20 + (level * 5);
 }
 
@@ -68,8 +72,12 @@ int chooseAction() {
 }
 
 // 敵人選擇行動
-int enemyAction() {
-    return rand() % 2 + 1;  // 1: 攻擊, 2: 防禦
+int enemyAction(Enemy *enemy) {
+    // 當敵人生命值低於 50% 時，有 70% 的機率選擇防禦
+    if (enemy->hp < enemy->max_hp / 2 && rand() % 100 < 70) {
+        return 2;  // 防禦
+    }
+    return 1;  // 攻擊
 }
 
 // 戰鬥系統
@@ -85,7 +93,7 @@ void battle(Character *player, Enemy *enemy) {
 
         switch (action) {
             case 1:  // 普通攻擊
-                damage = player->atk - enemy->def;
+                damage = player->atk - enemy->current_def;
                 if (damage < 0) damage = 0;
                 enemy->hp -= damage;
                 printf("%s 使用普通攻擊，對 %s 造成了 %d 點傷害！\n", player->name, enemy->name, damage);
@@ -93,7 +101,7 @@ void battle(Character *player, Enemy *enemy) {
 
             case 2:  // 強力攻擊
                 if (rand() % 100 < 80) {  // 80% 命中率
-                    damage = (int)(player->atk * 1.5) - enemy->def;
+                    damage = (int)(player->atk * 1.5) - enemy->current_def;
                     if (damage < 0) damage = 0;
                     enemy->hp -= damage;
                     printf("%s 使用強力攻擊，對 %s 造成了 %d 點傷害！\n", player->name, enemy->name, damage);
@@ -120,15 +128,19 @@ void battle(Character *player, Enemy *enemy) {
         }
 
         // 敵人回合
-        int enemyActionChoice = enemyAction();
+        int enemyActionChoice = enemyAction(enemy);
         if (enemyActionChoice == 1) {  // 敵人攻擊
             damage = enemy->atk - player->def;
             if (damage < 0) damage = 0;
             player->hp -= damage;
             printf("%s 對 %s 造成了 %d 點傷害！\n", enemy->name, player->name, damage);
         } else {  // 敵人防禦
-            enemy->def += 5;
-            printf("%s 進行防禦，防禦力提升 5 點！\n", enemy->name);
+            if (enemy->current_def < enemy->def * 2) {  // 防禦力上限為基礎防禦力的 2 倍
+                enemy->current_def += 5;
+                printf("%s 進行防禦，防禦力提升 5 點！\n", enemy->name);
+            } else {
+                printf("%s 的防禦力已達到上限！\n", enemy->name);
+            }
         }
 
         if (player->hp <= 0) {
