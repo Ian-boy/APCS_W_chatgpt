@@ -60,14 +60,14 @@ void init_player(Player *player) {
 // 產生敵人
 Enemy generate_enemy() {
     Enemy enemy;
-    int type = rand() % 5;
-    if (type == 0) {
+    int type = rand() % 8;
+    if (type == 0 ||type ==  6) {
         sprintf(enemy.name, "史萊姆");
         enemy.hp = 50;
         enemy.attack = 5;
         enemy.exp_reward = 20;
         enemy.gold_reward = 10;
-    } else if (type == 1) {
+    } else if (type == 1 ||type == 7) {
         sprintf(enemy.name, "哥布林");
         enemy.hp = 80;
         enemy.attack = 8;
@@ -85,6 +85,12 @@ Enemy generate_enemy() {
         enemy.attack = 9;
         enemy.exp_reward = 40;
         enemy.gold_reward = 70;
+    } else if (type == 8) {
+        sprintf(enemy.name, "傳說中的惡龍");
+        enemy.hp = 230;
+        enemy.attack = 15;
+        enemy.exp_reward = 150;
+        enemy.gold_reward = 150;
     } else {
         sprintf(enemy.name, "狼人");
         enemy.hp = 120;
