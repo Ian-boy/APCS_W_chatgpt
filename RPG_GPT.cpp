@@ -226,14 +226,14 @@ void shop(Player *player) {
 
         if (choice == 1) {
             printf("選擇武器:\n");
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < 5; i++) {
                 printf("%d. %s (+%d 攻擊) - %d 金幣\n", i + 1, weapons[i].name, weapons[i].attack_bonus, weapons[i].price);
             }
             printf("0. 取消\n");
 
             int w_choice;
             scanf("%d", &w_choice);
-            if (w_choice >= 1 && w_choice <= 3) {
+            if (w_choice >= 1 && w_choice <= 5) {
                 if (player->gold >= weapons[w_choice - 1].price) {
                     player->attack = player->attack + weapons[w_choice - 1].attack_bonus;
                     player->gold -= weapons[w_choice - 1].price;
