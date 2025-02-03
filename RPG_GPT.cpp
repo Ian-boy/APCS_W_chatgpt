@@ -75,10 +75,10 @@ Enemy generate_enemy() {
         enemy.gold_reward = 15;
     } else if (type == 2) {
         sprintf(enemy.name, "巨人");
-        enemy.hp = 200;
-        enemy.attack = 10;
-        enemy.exp_reward = 50;
-        enemy.gold_reward = 30;
+        enemy.hp = 150;
+        enemy.attack = 9;
+        enemy.exp_reward = 80;
+        enemy.gold_reward = 40;
     } else {
         sprintf(enemy.name, "狼人");
         enemy.hp = 120;
