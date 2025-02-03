@@ -178,7 +178,7 @@ void battle(Player *player) {
         printf("\n你被打敗了...\n");
         printf("金幣歸零，你復活了!\n");
         player->gold = 0;
-        player->hp = player->max_hp / 1.5;
+        player->hp = player->max_hp /1.2;
     }
 }
 
