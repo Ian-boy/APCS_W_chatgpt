@@ -59,48 +59,65 @@ void init_player(Player *player) {
 }
 
 // 產生敵人
-Enemy generate_enemy() {
+Enemy generate_enemy(Player *player) {
     Enemy enemy;
-    int type = rand() % 8;
-    if (type == 0 ||type ==  6) {
-        sprintf(enemy.name, "史萊姆");
-        enemy.hp = 50;
-        enemy.attack = 5;
-        enemy.exp_reward = 20;
-        enemy.gold_reward = 10;
-    } else if (type == 1 ||type == 7) {
-        sprintf(enemy.name, "哥布林");
-        enemy.hp = 80;
-        enemy.attack = 8;
-        enemy.exp_reward = 30;
-        enemy.gold_reward = 15;
-    } else if (type == 2) {
-        sprintf(enemy.name, "巨人");
-        enemy.hp = 150;
-        enemy.attack = 9;
-        enemy.exp_reward = 80;
-        enemy.gold_reward = 40;
-    } else if (type == 3) {
-        sprintf(enemy.name, "大富翁哥布林");
-        enemy.hp = 90;
-        enemy.attack = 9;
-        enemy.exp_reward = 40;
-        enemy.gold_reward = 70;
-    } else if (type == 8) {
-        sprintf(enemy.name, "傳說中的惡龍");
-        enemy.hp = 230;
-        enemy.attack = 15;
-        enemy.exp_reward = 150;
-        enemy.gold_reward = 150;
+    int type;
+    
+    if (player->level >= 3) {
+        type = rand() % 6; // 允許惡龍出現
+    } else if (player->level >= 2) {
+        type = rand() % 5; // 不包含惡龍
     } else {
-        sprintf(enemy.name, "狼人");
-        enemy.hp = 120;
-        enemy.attack = 12;
-        enemy.exp_reward = 50;
-        enemy.gold_reward = 25;
+        type = rand() % 2; // 只有史萊姆和哥布林
+    }
+
+    switch (type) {
+        case 0:
+            sprintf(enemy.name, "史萊姆");
+            enemy.hp = 50;
+            enemy.attack = 5;
+            enemy.exp_reward = 20;
+            enemy.gold_reward = 10;
+            break;
+        case 1:
+            sprintf(enemy.name, "哥布林");
+            enemy.hp = 80;
+            enemy.attack = 8;
+            enemy.exp_reward = 30;
+            enemy.gold_reward = 15;
+            break;
+        case 2:
+            sprintf(enemy.name, "巨人");
+            enemy.hp = 150;
+            enemy.attack = 9;
+            enemy.exp_reward = 80;
+            enemy.gold_reward = 40;
+            break;
+        case 3:
+            sprintf(enemy.name, "大富翁哥布林");
+            enemy.hp = 90;
+            enemy.attack = 9;
+            enemy.exp_reward = 40;
+            enemy.gold_reward = 70;
+            break;
+        case 4:
+            sprintf(enemy.name, "狼人");
+            enemy.hp = 120;
+            enemy.attack = 12;
+            enemy.exp_reward = 50;
+            enemy.gold_reward = 25;
+            break;
+        case 5:
+            sprintf(enemy.name, "傳說中的惡龍");
+            enemy.hp = 230;
+            enemy.attack = 15;
+            enemy.exp_reward = 150;
+            enemy.gold_reward = 150;
+            break;
     }
     return enemy;
 }
+
 
 // 顯示狀態
 void show_status(Player *player) {
@@ -119,14 +136,14 @@ void level_up(Player *player) {
         player->max_hp += 20;
         player->hp = player->max_hp;
         player->base_attack += 5;
-        player->attack += player->attack;
+        player->attack += player->base_attack;
         printf("\n*** 恭喜升級! 等級: %d  最大生命: %d  攻擊力: %d ***\n",
                player->level, player->max_hp, player->attack);
     }
 }
 //戰鬥系統
 void battle(Player *player) {
-    Enemy enemy = generate_enemy();
+    Enemy enemy = generate_enemy(player);
     int frozen_turn = 0;
 
     printf("\n你遇到了 %s! (HP: %d, 攻擊力: %d)\n", enemy.name, enemy.hp, enemy.attack);
@@ -145,7 +162,7 @@ void battle(Player *player) {
             enemy.hp -= player->attack;
         } else if (choice == 2) {
             Skill skills[] = {
-                {"火球🔥", 1.75, 0, 50},
+                {"火球🔥", 1.5, 0, 50},
                 {"雷擊⚡",2.0, 0, 80},
                 {"治癒🏥", 0.0, 30, 70},
                 {"冰凍🧊", 1.2, 0, 60},
