@@ -48,8 +48,8 @@ void init_player(Player *player) {
     player->level = 1;
     player->hp = 100;
     player->max_hp = 100;
-    player->base_attack = 10;
-    player->attack = player->base_attack;
+    player->base_attack = 0;
+    player->attack = 10;
     player->gold = 50;
     player->exp = 0;
     player->next_level_exp = 100;
@@ -119,13 +119,12 @@ void level_up(Player *player) {
         player->max_hp += 20;
         player->hp = player->max_hp;
         player->base_attack += 5;
-        player->attack = player->base_attack;
+        player->attack += player->attack;
         printf("\n*** 恭喜升級! 等級: %d  最大生命: %d  攻擊力: %d ***\n",
                player->level, player->max_hp, player->attack);
     }
 }
-
-// 戰鬥系統
+//戰鬥系統
 void battle(Player *player) {
     Enemy enemy = generate_enemy();
     int frozen_turn = 0;
@@ -146,11 +145,11 @@ void battle(Player *player) {
             enemy.hp -= player->attack;
         } else if (choice == 2) {
             Skill skills[] = {
-                {"火球", 1.75, 0, 50},
-                {"雷擊", 2.0, 0, 80},
-                {"治癒", 0.0, 30, 70},
-                {"冰凍", 1.2, 0, 60},
-                {"爆裂擊", 2.5, 0, 100}
+                {"火球🔥", 1.75, 0, 50},
+                {"雷擊⚡",2.0, 0, 80},
+                {"治癒🏥", 0.0, 30, 70},
+                {"冰凍🧊", 1.2, 0, 60},
+                {"爆裂擊🧨", 2.5, 0, 100} // 這裡數值保持不變，命中率控制在後面
             };
 
             printf("選擇技能:\n");
@@ -170,15 +169,33 @@ void battle(Player *player) {
                     player->hp += skills[skill_choice - 1].heal;
                     if (player->hp > player->max_hp) player->hp = player->max_hp;
                 } else {
-                    int damage = player->attack * skills[skill_choice - 1].attack_multiplier;
-                    printf("你施放 %s，造成 %d 傷害!\n", skills[skill_choice - 1].name, damage);
-                    enemy.hp -= damage;
-                    if (skill_choice == 4 && (rand() % 2 == 0)) { // 冰凍 50% 機率
-                        printf("冰凍成功! %s 無法行動 1 回合!\n", enemy.name);
-                        frozen_turn = 1;
+                    // **爆裂擊 (50% 命中)**
+                    if (skill_choice == 5) {
+                        if (rand() % 2 == 0) { // 50% 機率命中
+                            int damage = player->attack * skills[skill_choice - 1].attack_multiplier;
+                            printf("你施放 %s，造成 %d 傷害!\n", skills[skill_choice - 1].name, damage);
+                            enemy.hp -= damage;
+                        } else {
+                            printf("你施放 %s，但攻擊失敗了!\n", skills[skill_choice - 1].name);
+                        }
+                    } 
+                    // **冰凍 (50% 機率成功)**
+                    else if (skill_choice == 4) {
+                        int damage = player->attack * skills[skill_choice - 1].attack_multiplier;
+                        printf("你施放 %s，造成 %d 傷害!\n", skills[skill_choice - 1].name, damage);
+                        enemy.hp -= damage;
+                        if (rand() % 2 == 0) { 
+                            printf("冰凍成功🧊! %s 無法行動 1 回合🥶!\n", enemy.name);
+                            frozen_turn = 1;
+                        } else {
+                            printf("冰凍失敗! %s 仍然可以攻擊!\n", enemy.name);
+                        }
                     }
-                    else if (skill_choice == 4 && (rand() % 2 == 1)){
-                        printf("冰凍失敗! %s 仍然可以攻擊!\n", enemy.name);
+                    // **其他技能**
+                    else {
+                        int damage = player->attack * skills[skill_choice - 1].attack_multiplier;
+                        printf("你施放 %s，造成 %d 傷害!\n", skills[skill_choice - 1].name, damage);
+                        enemy.hp -= damage;
                     }
                 }
             } else {
@@ -210,19 +227,19 @@ void battle(Player *player) {
 // 商店系統
 void shop(Player *player) {
     Weapon weapons[] = {
-        {"木劍️", 1, 10},
-        {"銅劍", 3, 30},
-        {"鐵劍", 5, 50},
-        {"鋼劍", 10, 100},
-        {"魔劍", 20, 200}
+        {"木劍️", 1,20},
+        {"銅劍", 2, 40},
+        {"鐵劍", 3, 60},
+        {"鋼劍", 5, 100},
+        {"魔劍", 10, 200}
     };
 
     Skill skills[] = {
         {"火球🔥", 1.5, 0, 50},
-        {"雷擊🌩", 2.0, 0, 80},
-        {"治癒", 0.0, 30, 70},
+        {"雷擊⚡",2.0, 0, 80},
+        {"治癒🏥", 0.0, 30, 70},
         {"冰凍🧊", 1.2, 0, 60},
-        {"爆裂擊", 2.5, 0, 100}
+        {"爆裂擊🧨", 2.5, 0, 100}
     };
 
     while (1) {
