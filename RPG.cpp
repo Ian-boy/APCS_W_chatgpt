@@ -2,200 +2,338 @@
 #include <stdlib.h>
 #include <time.h>
 
-// 角色結構
+// 玩家結構
 typedef struct {
-    char name[20];  // 角色名稱
-    int hp;         // 生命值
-    int max_hp;     // 最大生命值
-    int atk;        // 攻擊力
-    int def;        // 防禦力
-    int exp;        // 經驗值
-    int level;      // 等級
-} Character;
+    char name[50];
+    int level;
+    int hp;
+    int max_hp;
+    int attack;
+    int base_attack;
+    int gold;
+    int exp;
+    int next_level_exp;
+    int skills[5]; // 0:火球, 1:雷擊, 2:治癒, 3:冰凍, 4:爆裂擊
+    int weapons[5];
+} Player;
 
 // 敵人結構
 typedef struct {
-    char name[20];  // 敵人名稱
-    int hp;         // 生命值
-    int max_hp;     // 最大生命值
-    int atk;        // 攻擊力
-    int def;        // 基礎防禦力
-    int current_def;// 當前防禦力
-    int exp;        // 提供的經驗值
+    char name[50];
+    int hp;
+    int attack;
+    int exp_reward;
+    int gold_reward;
 } Enemy;
 
-// 初始化玩家角色
-void initPlayer(Character *player) {
+// 武器結構
+typedef struct {
+    char name[30];
+    int attack_bonus;
+    int price;
+} Weapon;
+
+// 技能結構
+typedef struct {
+    char name[30];
+    float attack_multiplier;
+    int heal;
+    int price;
+} Skill;
+
+// 初始化玩家
+void init_player(Player *player) {
     printf("請輸入你的角色名稱: ");
     scanf("%s", player->name);
     player->level = 1;
+    player->hp = 100;
     player->max_hp = 100;
-    player->hp = player->max_hp;
-    player->atk = 15;
-    player->def = 10;
+    player->base_attack = 0;
+    player->attack = 10;
+    player->gold = 50;
     player->exp = 0;
-}
-
-// 初始化敵人
-void initEnemy(Enemy *enemy, int level) {
-    sprintf(enemy->name, "敵人 Lv.%d", level);
-    enemy->max_hp = 50 + (level * 10);
-    enemy->hp = enemy->max_hp;
-    enemy->atk = 10 + (level * 5);
-    enemy->def = 5 + (level * 3);  // 基礎防禦力
-    enemy->current_def = enemy->def;  // 當前防禦力
-    enemy->exp = 20 + (level * 5);
-}
-
-// 顯示角色狀態
-void showStatus(Character *player) {
-    printf("\n=== 角色狀態 ===\n");
-    printf("名稱: %s\n", player->name);
-    printf("等級: %d\n", player->level);
-    printf("生命值: %d/%d\n", player->hp, player->max_hp);
-    printf("攻擊力: %d\n", player->atk);
-    printf("防禦力: %d\n", player->def);
-    printf("經驗值: %d/100\n", player->exp);
-    printf("================\n");
-}
-
-// 玩家選擇招式
-int chooseAction() {
-    int choice;
-    printf("\n選擇招式:\n");
-    printf("1. 普通攻擊 (造成 100%% 傷害)\n");
-    printf("2. 強力攻擊 (造成 150%% 傷害，命中率 80%%)\n");
-    printf("3. 治療 (回復 20%% 最大生命值)\n");
-    printf("請輸入選擇: ");
-    scanf("%d", &choice);
-    return choice;
-}
-
-// 敵人選擇行動
-int enemyAction(Enemy *enemy) {
-    // 當敵人生命值低於 50% 時，有 70% 的機率選擇防禦
-    if (enemy->hp < enemy->max_hp / 2 && rand() % 100 < 70) {
-        return 2;  // 防禦
+    player->next_level_exp = 100;
+    for (int i = 0; i < 5; i++) {
+        player->skills[i] = 0;
     }
-    return 1;  // 攻擊
+}
+
+// 產生敵人
+Enemy generate_enemy() {
+    Enemy enemy;
+    int type = rand() % 8;
+    if (type == 0 ||type ==  6) {
+        sprintf(enemy.name, "史萊姆");
+        enemy.hp = 50;
+        enemy.attack = 5;
+        enemy.exp_reward = 20;
+        enemy.gold_reward = 10;
+    } else if (type == 1 ||type == 7) {
+        sprintf(enemy.name, "哥布林");
+        enemy.hp = 80;
+        enemy.attack = 8;
+        enemy.exp_reward = 30;
+        enemy.gold_reward = 15;
+    } else if (type == 2) {
+        sprintf(enemy.name, "巨人");
+        enemy.hp = 150;
+        enemy.attack = 9;
+        enemy.exp_reward = 80;
+        enemy.gold_reward = 40;
+    } else if (type == 3) {
+        sprintf(enemy.name, "大富翁哥布林");
+        enemy.hp = 90;
+        enemy.attack = 9;
+        enemy.exp_reward = 40;
+        enemy.gold_reward = 70;
+    } else if (type == 8) {
+        sprintf(enemy.name, "傳說中的惡龍");
+        enemy.hp = 230;
+        enemy.attack = 15;
+        enemy.exp_reward = 150;
+        enemy.gold_reward = 150;
+    } else {
+        sprintf(enemy.name, "狼人");
+        enemy.hp = 120;
+        enemy.attack = 12;
+        enemy.exp_reward = 50;
+        enemy.gold_reward = 25;
+    }
+    return enemy;
+}
+
+// 顯示狀態
+void show_status(Player *player) {
+    printf("\n--- %s 的狀態 ---\n", player->name);
+    printf("等級: %d  HP❤️: %d/%d  攻擊力🥊: %d  金錢💰: %d  經驗值: %d/%d\n",
+           player->level, player->hp, player->max_hp, player->attack, player->gold,
+           player->exp, player->next_level_exp);
+}
+
+// 升級系統
+void level_up(Player *player) {
+    if (player->exp >= player->next_level_exp) {
+        player->level++;
+        player->exp = 0;
+        player->next_level_exp *= 1.5;
+        player->max_hp += 20;
+        player->hp = player->max_hp;
+        player->base_attack += 5;
+        player->attack += player->attack;
+        printf("\n*** 恭喜升級! 等級: %d  最大生命: %d  攻擊力: %d ***\n",
+               player->level, player->max_hp, player->attack);
+    }
 }
 
 // 戰鬥系統
-void battle(Character *player, Enemy *enemy) {
-    printf("\n=== 戰鬥開始 ===\n");
-    printf("%s 對上了 %s！\n", player->name, enemy->name);
+void battle(Player *player) {
+    Enemy enemy = generate_enemy();
+    int frozen_turn = 0;
 
-    while (player->hp > 0 && enemy->hp > 0) {
-        // 玩家回合
-        showStatus(player);
-        int action = chooseAction();
-        int damage;
+    printf("\n你遇到了 %s! (HP: %d, 攻擊力: %d)\n", enemy.name, enemy.hp, enemy.attack);
 
-        switch (action) {
-            case 1:  // 普通攻擊
-                damage = player->atk - enemy->current_def;
-                if (damage < 0) damage = 0;
-                enemy->hp -= damage;
-                printf("%s 使用普通攻擊，對 %s 造成了 %d 點傷害！\n", player->name, enemy->name, damage);
-                break;
+    while (enemy.hp > 0 && player->hp > 0) {
+        printf("\n=== 戰鬥中 ===\n");
+        printf("你: HP %d/%d\n", player->hp, player->max_hp);
+        printf("%s: HP %d\n", enemy.name, enemy.hp);
 
-            case 2:  // 強力攻擊
-                if (rand() % 100 < 80) {  // 80% 命中率
-                    damage = (int)(player->atk * 1.5) - enemy->current_def;
-                    if (damage < 0) damage = 0;
-                    enemy->hp -= damage;
-                    printf("%s 使用強力攻擊，對 %s 造成了 %d 點傷害！\n", player->name, enemy->name, damage);
-                } else {
-                    printf("%s 的強力攻擊未命中！\n", player->name);
+        printf("\n選擇行動:\n1. 普通攻擊\n2. 使用技能\n");
+        int choice;
+        scanf("%d", &choice);
+
+        if (choice == 1) {
+            printf("你對 %s 造成 %d 傷害!\n", enemy.name, player->attack);
+            enemy.hp -= player->attack;
+        } else if (choice == 2) {
+            Skill skills[] = {
+                {"火球", 1.75, 0, 50},
+                {"雷擊", 2.0, 0, 80},
+                {"治癒", 0.0, 30, 70},
+                {"冰凍", 1.2, 0, 60},
+                {"爆裂擊", 2.5, 0, 100}
+            };
+
+            printf("選擇技能:\n");
+            for (int i = 0; i < 5; i++) {
+                if (player->skills[i]) {
+                    printf("%d. %s (%.0f%% 傷害)\n", i + 1, skills[i].name, skills[i].attack_multiplier * 100);
                 }
-                break;
+            }
+            printf("0. 取消\n");
 
-            case 3:  // 治療
-                damage = (int)(player->max_hp * 0.2);
-                player->hp += damage;
-                if (player->hp > player->max_hp) player->hp = player->max_hp;
-                printf("%s 使用治療，回復了 %d 點生命值！\n", player->name, damage);
-                break;
+            int skill_choice;
+            scanf("%d", &skill_choice);
 
-            default:
-                printf("無效選擇，跳過本回合。\n");
-                break;
-        }
+            if (skill_choice >= 1 && skill_choice <= 5 && player->skills[skill_choice - 1]) {
+                if (skills[skill_choice - 1].heal > 0) {
+                    printf("你施放 %s，恢復 %d HP!\n", skills[skill_choice - 1].name, skills[skill_choice - 1].heal);
+                    player->hp += skills[skill_choice - 1].heal;
+                    if (player->hp > player->max_hp) player->hp = player->max_hp;
+                } else {
+                    int damage = player->attack * skills[skill_choice - 1].attack_multiplier;
+                    printf("你施放 %s，造成 %d 傷害!\n", skills[skill_choice - 1].name, damage);
+                    enemy.hp -= damage;
+                    if (skill_choice == 4 && (rand() % 2 == 0)) { // 冰凍 50% 機率
+                        printf("冰凍成功! %s 無法行動 1 回合!\n", enemy.name);
+                        frozen_turn = 1;
+                    }
+                    else if (skill_choice == 4 && (rand() % 2 == 1)){
+                        printf("冰凍失敗! %s 仍然可以攻擊!\n", enemy.name);
+                    }
 
-        if (enemy->hp <= 0) {
-            printf("%s 被擊敗了！\n", enemy->name);
-            break;
-        }
-
-        // 敵人回合
-        int enemyActionChoice = enemyAction(enemy);
-        if (enemyActionChoice == 1) {  // 敵人攻擊
-            damage = enemy->atk - player->def;
-            if (damage < 0) damage = 0;
-            player->hp -= damage;
-            printf("%s 對 %s 造成了 %d 點傷害！\n", enemy->name, player->name, damage);
-        } else {  // 敵人防禦
-            if (enemy->current_def < enemy->def * 2) {  // 防禦力上限為基礎防禦力的 2 倍
-                enemy->current_def += 5;
-                printf("%s 進行防禦，防禦力提升 5 點！\n", enemy->name);
+                }
             } else {
-                printf("%s 的防禦力已達到上限！\n", enemy->name);
+                printf("無效選擇!\n");
+                continue;
             }
         }
 
-        if (player->hp <= 0) {
-            printf("%s 被擊敗了...\n", player->name);
-            break;
+        if (enemy.hp > 0 && !frozen_turn) {
+            printf("%s 反擊，對你造成 %d 傷害!\n", enemy.name, enemy.attack);
+            player->hp -= enemy.attack;
+        } else if (frozen_turn) {
+            printf("%s 被冰凍，無法攻擊!\n", enemy.name);
+            frozen_turn = 0; // 冰凍效果只持續一回合
         }
     }
 
     if (player->hp > 0) {
-        printf("\n戰鬥勝利！\n");
-        player->exp += enemy->exp;
-        printf("獲得 %d 點經驗值！\n", enemy->exp);
-
-        // 檢查是否升級
-        if (player->exp >= 100) {
-            player->level++;
-            player->max_hp += 20;
-            player->hp = player->max_hp;
-            player->atk += 5;
-            player->def += 3;
-            player->exp -= 100;
-            printf("%s 升級到 Lv.%d！\n", player->name, player->level);
-        }
+        printf("\n你打敗了 %s!\n", enemy.name);
+        player->exp += enemy.exp_reward;
+        player->gold += enemy.gold_reward;
     } else {
-        printf("\n遊戲結束...\n");
-        exit(0);  // 遊戲結束
+        printf("\n你被打敗了...\n");
+        printf("金幣歸零，你復活了!\n");
+        player->gold = 0;
+        player->hp = player->max_hp * 0.83;
+    }
+}
+// 商店系統
+void shop(Player *player) {
+    Weapon weapons[] = {
+        {"木劍️", 1,20},
+        {"銅劍", 2, 40},
+        {"鐵劍", 3, 60},
+        {"鋼劍", 5, 100},
+        {"魔劍", 10, 200}
+    };
+
+    Skill skills[] = {
+        {"火球🔥", 1.5, 0, 50},
+        {"雷擊🌩", 2.0, 0, 80},
+        {"治癒", 0.0, 30, 70},
+        {"冰凍🧊", 1.2, 0, 60},
+        {"爆裂擊", 2.5, 0, 100}
+    };
+
+    while (1) {
+        printf("\n--- 商店 ---\n");
+        printf("1. 買武器⚔️\n2. 買技能🔥\n3. 離開\n");
+        int choice;
+        scanf("%d", &choice);
+
+        if (choice == 1) { // 買武器⚔️
+            printf("選擇武器:\n");
+            int available = 0;  
+            for (int i = 0; i < 5; i++) {
+                if (player->weapons[i] == 0) {  
+                    printf("%d. %s (+%d 攻擊) - %d 金幣\n", i + 1, weapons[i].name, weapons[i].attack_bonus, weapons[i].price);
+                    available = 1;
+                }
+            }
+            if (!available) {
+                printf("你已經買完所有武器了！\n");
+                continue;
+            }
+            printf("0. 取消\n");
+
+            int w_choice;
+            scanf("%d", &w_choice);
+
+            // **新增檢查: 若武器已購買，阻止購買**
+            if (w_choice >= 1 && w_choice <= 5) {
+                if (player->weapons[w_choice - 1] == 1) {  // **防止購買已購買的武器**
+                    printf("你已經擁有 %s，不能再買！\n", weapons[w_choice - 1].name);
+                } else if (player->gold >= weapons[w_choice - 1].price) {
+                    player->attack += weapons[w_choice - 1].attack_bonus;
+                    player->gold -= weapons[w_choice - 1].price;
+                    player->weapons[w_choice - 1] = 1;  
+                    printf("你購買並裝備了 %s!\n", weapons[w_choice - 1].name);
+                } else {
+                    printf("金幣不足!\n");
+                }
+            }
+
+        } else if (choice == 2) { // 買技能🔥
+            printf("選擇技能:\n");
+            int available = 0;
+            for (int i = 0; i < 5; i++) {
+                if (player->skills[i] == 0) {
+                    printf("%d. %s (%.0f%% 傷害) - %d 金幣\n", i + 1, skills[i].name, skills[i].attack_multiplier * 100, skills[i].price);
+                    available = 1;
+                }
+            }
+            if (!available) {
+                printf("你已經學會所有技能了！\n");
+                continue;
+            }
+            printf("0. 取消\n");
+
+            int s_choice;
+            scanf("%d", &s_choice);
+            if (s_choice >= 1 && s_choice <= 5) {
+                if (player->skills[s_choice - 1] == 1) {  // **防止購買已學會的技能**
+                    printf("你已經學會 %s，不能再買！\n", skills[s_choice - 1].name);
+                } else if (player->gold >= skills[s_choice - 1].price) {
+                    player->skills[s_choice - 1] = 1;
+                    player->gold -= skills[s_choice - 1].price;
+                    printf("你學會了 %s!\n", skills[s_choice - 1].name);
+                } else {
+                    printf("金幣不足!\n");
+                }
+            }
+        } else {
+            break;
+        }
     }
 }
 
-// 主遊戲循環
-int main() {
-    srand(time(NULL));  // 初始化隨機數種子
-    Character player;
-    initPlayer(&player);
 
-    int choice;
-    while (1) {
-        showStatus(&player);
-        printf("\n選擇行動:\n");
-        printf("2. 戰鬥\n");
-        printf("9. 退出遊戲\n");
-        printf("請輸入選擇: ");
-        scanf("%d", &choice);
+// 地圖探索系統
+void explore(Player *player) {
+    printf("\n=== 你開始探索地圖... ===\n");
 
-        if (choice == 2) {
-            Enemy enemy;
-            initEnemy(&enemy, player.level);
-            battle(&player, &enemy);
-        } else if (choice == 9) {
-            printf("退出遊戲。\n");
-            break;
-        } else {
-            printf("無效選擇，請重新輸入。\n");
-        }
+    int event = rand() % 4; // 0: 遇敵, 1: 發現寶箱, 2: 無事發生
+
+    if (event == 0) {
+        printf("你遇到了一個敵人!\n");
+        battle(player);
+    } else if (event == 1) {
+        int gold_found = (rand() % 50) + 10; // 獲得 10~50 金幣
+        printf("你發現了一個寶箱! 內有 %d 金幣!\n", gold_found);
+        player->gold += gold_found;
+    } else if (event == 2) {
+        int hp_found = (rand() % 40) + 10; // 獲得 10~50 金幣
+        printf("你發現了一個無人的營帳! \n你在裡面休息了一晚上，回復了 %d HP❤️!\n", hp_found);
+        player->hp += hp_found;
+        if (player->hp > player->max_hp) player->hp = player->max_hp;
+    } else {
+        printf("你探索了一會兒，但什麼都沒發現。\n");
     }
-
+}
+// 主函數
+int main() {
+    srand(time(NULL));
+    Player player;
+    init_player(&player);
+    while (1) {
+        level_up(&player);
+        show_status(&player);
+        printf("\n1. 探索地圖\n2. 商店\n");
+        int choice;
+        scanf("%d", &choice);
+        if (choice == 1) explore(&player);
+        else if (choice == 2) shop(&player);
+    }
     return 0;
 }
