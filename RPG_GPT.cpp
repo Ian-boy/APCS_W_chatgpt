@@ -17,6 +17,7 @@ typedef struct {
     int weapons[5];
     int key;
     int base_key;
+    int stage;
 } Player;
 
 // 敵人結構
@@ -56,6 +57,9 @@ void init_player(Player *player) {
     player->gold = 50;
     player->exp = 0;
     player->next_level_exp = 100;
+    player->key = 0;
+    player->base_key = 0;
+    player->stage = 1;
     for (int i = 0; i < 5; i++) {
         player->skills[i] = 0;
     }
@@ -65,64 +69,125 @@ void init_player(Player *player) {
 Enemy generate_enemy(Player *player) {
     Enemy enemy;
     int type;
+    if (player->stage==1){
+        if (player->level >= 3) {
+            type = rand() % 6; // 允許惡龍出現
+        } else if (player->level >= 2) {
+            type = rand() % 5; // 不包含惡龍
+        } else {
+            type = rand() % 2; // 只有史萊姆和哥布林
+        }
     
-    if (player->level >= 3) {
-        type = rand() % 6; // 允許惡龍出現
-    } else if (player->level >= 2) {
-        type = rand() % 5; // 不包含惡龍
-    } else {
-        type = rand() % 2; // 只有史萊姆和哥布林
+        switch (type) {
+            case 0:
+                sprintf(enemy.name, "史萊姆");
+                enemy.hp = 50;
+                enemy.attack = 5;
+                enemy.exp_reward = 20;
+                enemy.gold_reward = 10;
+                enemy.key_reward = 0;
+                break;
+            case 1:
+                sprintf(enemy.name, "哥布林");
+                enemy.hp = 80;
+                enemy.attack = 8;
+                enemy.exp_reward = 30;
+                enemy.gold_reward = 15;
+                enemy.key_reward = 0;
+                break;
+            case 2:
+                sprintf(enemy.name, "巨人");
+                enemy.hp = 150;
+                enemy.attack = 9;
+                enemy.exp_reward = 80;
+                enemy.gold_reward = 40;
+                enemy.key_reward = 0;
+                break;
+            case 3:
+                sprintf(enemy.name, "大富翁哥布林");
+                enemy.hp = 90;
+                enemy.attack = 9;
+                enemy.exp_reward = 40;
+                enemy.gold_reward = 70;
+                enemy.key_reward = 0;
+                break;
+            case 4:
+                sprintf(enemy.name, "狼人");
+                enemy.hp = 120;
+                enemy.attack = 12;
+                enemy.exp_reward = 50;
+                enemy.gold_reward = 25;
+                enemy.key_reward = 0;
+                break;
+            case 5:
+                sprintf(enemy.name, "傳說中的惡龍(BOOS)🐲");
+                enemy.hp = 230;
+                enemy.attack = 15;
+                enemy.exp_reward = 150;
+                enemy.gold_reward = 100;
+                enemy.key_reward = 1;
+                break;
+        }
     }
-
-    switch (type) {
-        case 0:
-            sprintf(enemy.name, "史萊姆");
-            enemy.hp = 50;
-            enemy.attack = 5;
-            enemy.exp_reward = 20;
-            enemy.gold_reward = 10;
-            enemy.key_reward = 0;
-            break;
-        case 1:
-            sprintf(enemy.name, "哥布林");
-            enemy.hp = 80;
-            enemy.attack = 8;
-            enemy.exp_reward = 30;
-            enemy.gold_reward = 15;
-            enemy.key_reward = 0;
-            break;
-        case 2:
-            sprintf(enemy.name, "巨人");
-            enemy.hp = 150;
-            enemy.attack = 9;
-            enemy.exp_reward = 80;
-            enemy.gold_reward = 40;
-            enemy.key_reward = 0;
-            break;
-        case 3:
-            sprintf(enemy.name, "大富翁哥布林");
-            enemy.hp = 90;
-            enemy.attack = 9;
-            enemy.exp_reward = 40;
-            enemy.gold_reward = 70;
-            enemy.key_reward = 0;
-            break;
-        case 4:
-            sprintf(enemy.name, "狼人");
-            enemy.hp = 120;
-            enemy.attack = 12;
-            enemy.exp_reward = 50;
-            enemy.gold_reward = 25;
-            enemy.key_reward = 0;
-            break;
-        case 5:
-            sprintf(enemy.name, "傳說中的惡龍(BOOS)");
-            enemy.hp = 230;
-            enemy.attack = 15;
-            enemy.exp_reward = 150;
-            enemy.gold_reward = 150;
-            enemy.key_reward = 1;
-            break;
+    else if (player->stage==2){
+        if (player->level >= 5) {
+            type = rand() % 6; 
+        } else if (player->level >= 4) {
+            type = rand() % 4; 
+        } else if (player->level >= 3){
+            type = rand() % 2; 
+        }
+    
+        switch (type) {
+            case 0:
+                sprintf(enemy.name, "螢光史萊姆");
+                enemy.hp = 100;
+                enemy.attack = 10;
+                enemy.exp_reward = 40;
+                enemy.gold_reward = 20;
+                enemy.key_reward = 0;
+                break;
+            case 1:
+                sprintf(enemy.name, "森林哥布林");
+                enemy.hp = 160;
+                enemy.attack = 16;
+                enemy.exp_reward = 60;
+                enemy.gold_reward = 30;
+                enemy.key_reward = 0;
+                break;
+            case 2:
+                sprintf(enemy.name, "蘑菇怪");
+                enemy.hp = 200;
+                enemy.attack = 20;
+                enemy.exp_reward = 150;
+                enemy.gold_reward = 80;
+                enemy.key_reward = 0;
+                break;
+            case 3:
+                sprintf(enemy.name, "森林甲蟲");
+                enemy.hp = 500;
+                enemy.attack = 10;
+                enemy.exp_reward = 170;
+                enemy.gold_reward = 70;
+                enemy.key_reward = 0;
+                break;
+            case 4:
+                sprintf(enemy.name, "螢光蘑菇怪");
+                enemy.hp = 300;
+                enemy.attack = 32;
+                enemy.exp_reward = 200;
+                enemy.gold_reward = 80;
+                enemy.key_reward = 0;
+                break;
+            case 5:
+                sprintf(enemy.name, "螢光蘑菇王(BOOS)🍄");
+                enemy.hp = 230;
+                enemy.attack = 15;
+                enemy.exp_reward = 250;
+                enemy.gold_reward = 150;
+                enemy.key_reward = 2;
+                break;
+        }
     }
     return enemy;
 }
@@ -131,9 +196,9 @@ Enemy generate_enemy(Player *player) {
 // 顯示狀態
 void show_status(Player *player) {
     printf("\n--- %s 的狀態 ---\n", player->name);
-    printf("等級: %d  HP❤️: %d/%d  攻擊力🥊: %d  金錢💰: %d  經驗值: %d/%d\n",
+    printf("等級: %d  HP❤️: %d/%d  攻擊力🥊: %d  金錢💰: %d  經驗值: %d/%d 目前關卡:%d\n",
            player->level, player->hp, player->max_hp, player->attack, player->gold,
-           player->exp, player->next_level_exp);
+           player->exp, player->next_level_exp,player->stage);
 }
 
 // 升級系統
@@ -373,6 +438,24 @@ void explore(Player *player) {
         printf("你探索了一會兒，但什麼都沒發現。\n");
     }
 }
+//關卡
+void stage(Player *player){
+    for (int i = 1; i < 6; i++){
+        printf("%d",player->key);
+        if (player->key+1>=i){
+            printf("%d.第%d關\n",i,i);
+        }
+        else printf("%d.第%d關(未解鎖)\n",i,i);
+    }
+    int choice;
+    scanf("%d", &choice);
+    if (player->key+1>=choice){
+        for (int i=1; i < 6; i++){
+        if (choice == i){
+        player->stage = player->key+1;}
+        }
+    }else printf("你還未解鎖這關");
+}
 // 主函數
 int main() {
     srand(time(NULL));
@@ -381,11 +464,12 @@ int main() {
     while (1) {
         level_up(&player);
         show_status(&player);
-        printf("\n1. 探索地圖\n2. 商店\n");
+        printf("\n1. 探索地圖\n2. 商店\n3.切換關卡\n");
         int choice;
         scanf("%d", &choice);
         if (choice == 1) explore(&player);
         else if (choice == 2) shop(&player);
+        else if (choice == 3) stage(&player);
         else printf("無效選擇!\n");
     }
 
