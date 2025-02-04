@@ -374,7 +374,7 @@ void shop(Player *player) {
 void explore(Player *player) {
     printf("\n=== 你開始探索地圖... ===\n");
 
-    int event = rand() % 4; // 0: 遇敵, 1: 發現寶箱, 2: 無事發生
+    int event = rand() % 3; // 0: 遇敵, 1: 發現寶箱, 2: 無事發生
 
     if (event == 0) {
         printf("你遇到了一個敵人!\n");
@@ -389,7 +389,28 @@ void explore(Player *player) {
         player->hp += hp_found;
         if (player->hp > player->max_hp) player->hp = player->max_hp;
     } else {
-        printf("你探索了一會兒，但什麼都沒發現。\n");
+        if (player->stage == 1){
+            printf("你探索了一會兒，但什麼都沒發現。\n");
+        }   
+        else{
+            int choice;
+            printf("你發現了一個螢光蘑菇。\n是否吃掉個螢光蘑菇(有可能+hp or -hp or +exp)\n1.是\n2.否\n");
+            scanf("%d",&choice);
+            if (choice == 1){
+                int mushroom = rand() % 2;
+                if (mushroom == 0){
+                    player->hp -= player->hp*0.3 ;
+                    printf("你吃的蘑菇有毒,你減少了30趴的血量");
+                }else if (mushroom == 1){
+                    player->hp += player->hp*0.3 ;
+                    if (player->hp > player->max_hp) player->hp = player->max_hp;
+                    printf("你吃的蘑菇有回復效果,你回復了30趴的血量");
+                }else{
+                    player->exp += 50;
+                    printf("你吃的蘑菇有經驗值,你增加了50經驗值");
+                }    
+            }
+        }
     }
 }
 //關卡
