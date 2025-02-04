@@ -15,6 +15,8 @@ typedef struct {
     int next_level_exp;
     int skills[5]; // 0:火球, 1:雷擊, 2:治癒, 3:冰凍, 4:爆裂擊
     int weapons[5];
+    int key;
+    int base_key;
 } Player;
 
 // 敵人結構
@@ -24,6 +26,7 @@ typedef struct {
     int attack;
     int exp_reward;
     int gold_reward;
+    int key_reward;
 } Enemy;
 
 // 武器結構
@@ -78,6 +81,7 @@ Enemy generate_enemy(Player *player) {
             enemy.attack = 5;
             enemy.exp_reward = 20;
             enemy.gold_reward = 10;
+            enemy.key_reward = 0;
             break;
         case 1:
             sprintf(enemy.name, "哥布林");
@@ -85,6 +89,7 @@ Enemy generate_enemy(Player *player) {
             enemy.attack = 8;
             enemy.exp_reward = 30;
             enemy.gold_reward = 15;
+            enemy.key_reward = 0;
             break;
         case 2:
             sprintf(enemy.name, "巨人");
@@ -92,6 +97,7 @@ Enemy generate_enemy(Player *player) {
             enemy.attack = 9;
             enemy.exp_reward = 80;
             enemy.gold_reward = 40;
+            enemy.key_reward = 0;
             break;
         case 3:
             sprintf(enemy.name, "大富翁哥布林");
@@ -99,6 +105,7 @@ Enemy generate_enemy(Player *player) {
             enemy.attack = 9;
             enemy.exp_reward = 40;
             enemy.gold_reward = 70;
+            enemy.key_reward = 0;
             break;
         case 4:
             sprintf(enemy.name, "狼人");
@@ -106,13 +113,15 @@ Enemy generate_enemy(Player *player) {
             enemy.attack = 12;
             enemy.exp_reward = 50;
             enemy.gold_reward = 25;
+            enemy.key_reward = 0;
             break;
         case 5:
-            sprintf(enemy.name, "傳說中的惡龍");
+            sprintf(enemy.name, "傳說中的惡龍(BOOS)");
             enemy.hp = 230;
             enemy.attack = 15;
             enemy.exp_reward = 150;
             enemy.gold_reward = 150;
+            enemy.key_reward = 1;
             break;
     }
     return enemy;
@@ -234,7 +243,17 @@ void battle(Player *player) {
         printf("\n你打敗了 %s!\n", enemy.name);
         player->exp += enemy.exp_reward;
         player->gold += enemy.gold_reward;
-    } else {
+        if (enemy.key_reward > 0){
+            player->key=enemy.key_reward;
+            if (player->key<player->base_key){
+            player->key=player->base_key;
+            }
+            else {
+                player->base_key=enemy.key_reward;
+                printf("%s掉落了通往第%d關的鑰匙\n你檢你了鑰匙\n你解鎖了第%d關",enemy.name,enemy.key_reward+1,enemy.key_reward+1);
+            }
+        }
+    }else {
         printf("\n你被打敗了...\n");
         printf("金幣歸零，你復活了!\n");
         player->gold = 0;
@@ -268,7 +287,7 @@ void shop(Player *player) {
         if (choice == 1) { // 買武器⚔️
             printf("選擇武器:\n");
             int available = 0;  
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < 6; i++) {
                 if (player->weapons[i] == 0) {  
                     printf("%d. %s (+%d 攻擊) - %d 金幣\n", i + 1, weapons[i].name, weapons[i].attack_bonus, weapons[i].price);
                     available = 1;
@@ -367,6 +386,8 @@ int main() {
         scanf("%d", &choice);
         if (choice == 1) explore(&player);
         else if (choice == 2) shop(&player);
+        else printf("無效選擇!\n");
     }
+
     return 0;
 }
