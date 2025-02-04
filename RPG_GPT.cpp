@@ -14,6 +14,7 @@ typedef struct {
     int exp;
     int next_level_exp;
     int skills[5]; // 0:火球, 1:雷擊, 2:治癒, 3:冰凍, 4:爆裂擊
+    int weapons[5];
 } Player;
 
 // 敵人結構
@@ -176,7 +177,7 @@ void battle(Player *player) {
                         printf("冰凍成功! %s 無法行動 1 回合!\n", enemy.name);
                         frozen_turn = 1;
                     }
-                    else {
+                    else if (skill_choice == 4 && (rand() % 2 == 1)){
                         printf("冰凍失敗! %s 仍然可以攻擊!\n", enemy.name);
                     }
                 }
@@ -203,7 +204,7 @@ void battle(Player *player) {
         printf("\n你被打敗了...\n");
         printf("金幣歸零，你復活了!\n");
         player->gold = 0;
-        player->hp = player->max_hp / 1.2;
+        player->hp = player->max_hp * 0.83;
     }
 }
 // 商店系統
@@ -230,37 +231,59 @@ void shop(Player *player) {
         int choice;
         scanf("%d", &choice);
 
-        if (choice == 1) {
+        if (choice == 1) { // 買武器⚔️
             printf("選擇武器:\n");
+            int available = 0;  
             for (int i = 0; i < 5; i++) {
-                printf("%d. %s (+%d 攻擊) - %d 金幣\n", i + 1, weapons[i].name, weapons[i].attack_bonus, weapons[i].price);
+                if (player->weapons[i] == 0) {  
+                    printf("%d. %s (+%d 攻擊) - %d 金幣\n", i + 1, weapons[i].name, weapons[i].attack_bonus, weapons[i].price);
+                    available = 1;
+                }
+            }
+            if (!available) {
+                printf("你已經買完所有武器了！\n");
+                continue;
             }
             printf("0. 取消\n");
 
             int w_choice;
             scanf("%d", &w_choice);
+
+            // **新增檢查: 若武器已購買，阻止購買**
             if (w_choice >= 1 && w_choice <= 5) {
-                if (player->gold >= weapons[w_choice - 1].price) {
-                    player->attack = player->attack + weapons[w_choice - 1].attack_bonus;
+                if (player->weapons[w_choice - 1] == 1) {  // **防止購買已購買的武器**
+                    printf("你已經擁有 %s，不能再買！\n", weapons[w_choice - 1].name);
+                } else if (player->gold >= weapons[w_choice - 1].price) {
+                    player->attack += weapons[w_choice - 1].attack_bonus;
                     player->gold -= weapons[w_choice - 1].price;
+                    player->weapons[w_choice - 1] = 1;  
                     printf("你購買並裝備了 %s!\n", weapons[w_choice - 1].name);
                 } else {
                     printf("金幣不足!\n");
                 }
             }
-        } else if (choice == 2) {
+
+        } else if (choice == 2) { // 買技能🔥
             printf("選擇技能:\n");
+            int available = 0;
             for (int i = 0; i < 5; i++) {
-                if (!player->skills[i]) {
+                if (player->skills[i] == 0) {
                     printf("%d. %s (%.0f%% 傷害) - %d 金幣\n", i + 1, skills[i].name, skills[i].attack_multiplier * 100, skills[i].price);
+                    available = 1;
                 }
+            }
+            if (!available) {
+                printf("你已經學會所有技能了！\n");
+                continue;
             }
             printf("0. 取消\n");
 
             int s_choice;
             scanf("%d", &s_choice);
             if (s_choice >= 1 && s_choice <= 5) {
-                if (player->gold >= skills[s_choice - 1].price) {
+                if (player->skills[s_choice - 1] == 1) {  // **防止購買已學會的技能**
+                    printf("你已經學會 %s，不能再買！\n", skills[s_choice - 1].name);
+                } else if (player->gold >= skills[s_choice - 1].price) {
                     player->skills[s_choice - 1] = 1;
                     player->gold -= skills[s_choice - 1].price;
                     printf("你學會了 %s!\n", skills[s_choice - 1].name);
@@ -273,6 +296,8 @@ void shop(Player *player) {
         }
     }
 }
+
+
 // 地圖探索系統
 void explore(Player *player) {
     printf("\n=== 你開始探索地圖... ===\n");
@@ -290,6 +315,7 @@ void explore(Player *player) {
         int hp_found = (rand() % 40) + 10; // 獲得 10~50 金幣
         printf("你發現了一個無人的營帳! \n你在裡面休息了一晚上，回復了 %d HP❤️!\n", hp_found);
         player->hp += hp_found;
+        if (player->hp > player->max_hp) player->hp = player->max_hp;
     } else {
         printf("你探索了一會兒，但什麼都沒發現。\n");
     }
