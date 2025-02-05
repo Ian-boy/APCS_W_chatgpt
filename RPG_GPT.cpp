@@ -8,6 +8,8 @@ typedef struct {
     int level;
     int hp;
     int max_hp;
+    int mp;
+    int max_mp;
     int attack;
     int base_attack;
     int gold;
@@ -42,6 +44,7 @@ typedef struct {
     char name[30];
     float attack_multiplier;
     int heal;
+    int mp;
     int price;
 } Skill;
 
@@ -60,6 +63,8 @@ void init_player(Player *player) {
     player->key = 0;
     player->base_key = 0;
     player->stage = 1;
+    player->mp = 10;
+    player->max_mp = 10;
     for (int i = 0; i < 5; i++) {
         player->skills[i] = 0;
     }
@@ -150,8 +155,8 @@ Enemy generate_enemy(Player *player) {
 // 顯示狀態
 void show_status(Player *player) {
     printf("\n--- %s 的狀態 ---\n", player->name);
-    printf("等級: %d  HP❤️: %d/%d  攻擊力🥊: %d  金錢💰: %d  經驗值: %d/%d 目前關卡:%d\n",
-           player->level, player->hp, player->max_hp, player->attack, player->gold,
+    printf("等級: %d  HP❤️: %d/%d  MP️🪄 : %d/%d  攻擊力🥊: %d  金錢💰: %d  經驗值: %d/%d 目前關卡:%d\n",
+           player->level, player->hp, player->max_hp, player->mp, player->max_mp, player->attack, player->gold,
            player->exp, player->next_level_exp,player->stage);
 }
 
@@ -165,6 +170,8 @@ void level_up(Player *player) {
         player->hp = player->max_hp;
         player->base_attack += 5;
         player->attack += player->base_attack;
+        player->max_mp +=1;
+        player->mp = player->max_mp;
         printf("\n*** 恭喜升級! 等級: %d  最大生命: %d  攻擊力: %d ***\n",
                player->level, player->max_hp, player->attack);
     }
@@ -178,8 +185,8 @@ void battle(Player *player) {
 
     while (enemy.hp > 0 && player->hp > 0) {
         printf("\n=== 戰鬥中 ===\n");
-        printf("你: HP %d/%d\n", player->hp, player->max_hp);
-        printf("%s: HP %d\n", enemy.name, enemy.hp);
+        printf("你: HP❤️ %d/%d MP🪄 %d/%d\n", player->hp, player->max_hp, player->mp, player->max_mp);
+        printf("%s: HP❤️ %d\n", enemy.name, enemy.hp);
 
         printf("\n選擇行動:\n1. 普通攻擊\n2. 使用技能\n");
         int choice;
@@ -190,17 +197,17 @@ void battle(Player *player) {
             enemy.hp -= player->attack;
         } else if (choice == 2) {
             Skill skills[] = {
-                {"火球🔥", 1.5, 0, 50},
-                {"雷擊⚡",2.0, 0, 80},
-                {"治癒🏥", 0.0, 30, 70},
-                {"冰凍🧊", 1.2, 0, 60},
-                {"爆裂擊🧨", 2.5, 0, 100} // 這裡數值保持不變，命中率控制在後面
+                {"火球🔥", 1.5, 0, 1},
+                {"雷擊⚡",2.0, 0, 3},
+                {"治癒🏥", 0.0, 30, 2},
+                {"冰凍🧊", 1.2, 0, 3},
+                {"爆裂擊🧨", 2.5, 0, 4}
             };
 
             printf("選擇技能:\n");
             for (int i = 0; i < 5; i++) {
                 if (player->skills[i]) {
-                    printf("%d. %s (%.0f%% 傷害)\n", i + 1, skills[i].name, skills[i].attack_multiplier * 100);
+                    printf("%d. %s (%.0f%% 傷害) - 使用時消耗 %d mp\n", i + 1, skills[i].name, skills[i].attack_multiplier * 100, skills[i].mp);
                 }
             }
             printf("0. 取消\n");
@@ -209,40 +216,46 @@ void battle(Player *player) {
             scanf("%d", &skill_choice);
 
             if (skill_choice >= 1 && skill_choice <= 5 && player->skills[skill_choice - 1]) {
-                if (skills[skill_choice - 1].heal > 0) {
-                    printf("你施放 %s，恢復 %d HP!\n", skills[skill_choice - 1].name, skills[skill_choice - 1].heal);
-                    player->hp += skills[skill_choice - 1].heal;
-                    if (player->hp > player->max_hp) player->hp = player->max_hp;
-                } else {
-                    // **爆裂擊 (50% 命中)**
-                    if (skill_choice == 5) {
-                        if (rand() % 2 == 0) { // 50% 機率命中
+                if (skills[skill_choice - 1].mp <= player->mp){
+                    player->mp -= skills[skill_choice - 1].mp;
+                    if (skills[skill_choice - 1].heal > 0) {
+                        printf("你施放 %s，恢復 %d HP!\n", skills[skill_choice - 1].name, skills[skill_choice - 1].heal);
+                        player->hp += skills[skill_choice - 1].heal;
+                        if (player->hp > player->max_hp) player->hp = player->max_hp;
+                    } else {
+                        // **爆裂擊 (50% 命中)**
+                        if (skill_choice == 5) {
+                            if (rand() % 2 == 0) { // 50% 機率命中
+                                int damage = player->attack * skills[skill_choice - 1].attack_multiplier;
+                                printf("你施放 %s，造成 %d 傷害!\n", skills[skill_choice - 1].name, damage);
+                                enemy.hp -= damage;
+                            } else {
+                                printf("你施放 %s，但攻擊失敗了!\n", skills[skill_choice - 1].name);
+                            }
+                        } 
+                        // **冰凍 (50% 機率成功)**
+                        else if (skill_choice == 4) {
                             int damage = player->attack * skills[skill_choice - 1].attack_multiplier;
                             printf("你施放 %s，造成 %d 傷害!\n", skills[skill_choice - 1].name, damage);
                             enemy.hp -= damage;
-                        } else {
-                            printf("你施放 %s，但攻擊失敗了!\n", skills[skill_choice - 1].name);
+                            if (rand() % 2 == 0) { 
+                                printf("冰凍成功🧊! %s 無法行動 1 回合🥶!\n", enemy.name);
+                                frozen_turn = 1;
+                            } else {
+                                printf("冰凍失敗! %s 仍然可以攻擊!\n", enemy.name);
+                            }
                         }
-                    } 
-                    // **冰凍 (50% 機率成功)**
-                    else if (skill_choice == 4) {
-                        int damage = player->attack * skills[skill_choice - 1].attack_multiplier;
-                        printf("你施放 %s，造成 %d 傷害!\n", skills[skill_choice - 1].name, damage);
-                        enemy.hp -= damage;
-                        if (rand() % 2 == 0) { 
-                            printf("冰凍成功🧊! %s 無法行動 1 回合🥶!\n", enemy.name);
-                            frozen_turn = 1;
-                        } else {
-                            printf("冰凍失敗! %s 仍然可以攻擊!\n", enemy.name);
+                        // **其他技能**
+                        else {
+                            int damage = player->attack * skills[skill_choice - 1].attack_multiplier;
+                            printf("你施放 %s，造成 %d 傷害!\n", skills[skill_choice - 1].name, damage);
+                            enemy.hp -= damage;
                         }
                     }
-                    // **其他技能**
-                    else {
-                        int damage = player->attack * skills[skill_choice - 1].attack_multiplier;
-                        printf("你施放 %s，造成 %d 傷害!\n", skills[skill_choice - 1].name, damage);
-                        enemy.hp -= damage;
-                    }
-                }
+                } else {
+                    printf("你的MP不夠");
+                    continue;
+                }    
             } else {
                 printf("無效選擇!\n");
                 continue;
@@ -290,16 +303,16 @@ void shop(Player *player) {
     };
 
     Skill skills[] = {
-        {"火球🔥", 1.5, 0, 50},
-        {"雷擊⚡",2.0, 0, 80},
-        {"治癒🏥", 0.0, 30, 70},
-        {"冰凍🧊", 1.2, 0, 60},
-        {"爆裂擊🧨", 2.5, 0, 100}
+        {"火球🔥", 1.5, 0, 1, 50},
+        {"雷擊⚡",2.0, 0, 3, 80},
+        {"治癒🏥", 0.0, 30, 2, 70},
+        {"冰凍🧊", 1.2, 0, 3, 60},
+        {"爆裂擊🧨", 2.5, 0, 4, 100}
     };
 
     while (1) {
         printf("\n--- 商店 ---\n");
-        printf("1. 買武器⚔️\n2. 買技能🔥\n3. 離開\n");
+        printf("1. 買武器⚔️\n2. 買技能🔥\n3. 回復1MP - 10金幣\n4. 離開\n");
         int choice;
         scanf("%d", &choice);
 
@@ -340,7 +353,7 @@ void shop(Player *player) {
             int available = 0;
             for (int i = 0; i < 5; i++) {
                 if (player->skills[i] == 0) {
-                    printf("%d. %s (%.0f%% 傷害) - %d 金幣\n", i + 1, skills[i].name, skills[i].attack_multiplier * 100, skills[i].price);
+                    printf("%d. %s (%.0f%% 傷害) - %d  - 使用時消耗 %d mp\n", i + 1, skills[i].name, skills[i].attack_multiplier * 100, skills[i].price, skills[i].mp);
                     available = 1;
                 }
             }
@@ -363,6 +376,12 @@ void shop(Player *player) {
                     printf("金幣不足!\n");
                 }
             }
+        } else if (choice == 3) {
+            if (player->mp < player->max_mp){    
+                player->mp += 1;
+                player->gold -=10;
+                printf("你回復了1mp!");
+            }else printf("你的mp已滿，不能回復");
         } else {
             break;
         }
