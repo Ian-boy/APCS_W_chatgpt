@@ -62,7 +62,7 @@ void init_player(Player *player) {
     player->next_level_exp = 100;
     player->key = 0;
     player->base_key = 0;
-    player->stage = 1;
+    player->stage = 111;
     player->mp = 10;
     player->max_mp = 10;
     for (int i = 0; i < 5; i++) {
@@ -397,7 +397,7 @@ void shop(Player *player) {
 void explore(Player *player) {
     printf("\n=== 你開始探索地圖... ===\n");
 
-    int event = rand() % 3; // 0: 遇敵, 1: 發現寶箱, 2: 無事發生
+    int event = rand() % 4; // 0: 遇敵, 1: 發現寶箱, 2: 無事發生
 
     if (event == 0) {
         printf("你遇到了一個敵人!\n");
@@ -420,10 +420,10 @@ void explore(Player *player) {
             printf("你發現了一個螢光蘑菇。\n是否吃掉個螢光蘑菇(有可能+hp or -hp or +exp)\n1.是\n2.否\n");
             scanf("%d",&choice);
             if (choice == 1){
-                int mushroom = rand() % 2;
+                int mushroom = rand() % 31;
                 if (mushroom == 0){
-                    player->hp -= player->hp*0.3 ;
-                    printf("你吃的蘑菇有毒,你減少了30趴的血量");
+                    player->hp -= player->hp*0.6 ;
+                    printf("你吃的蘑菇有毒,你減少了60趴的血量");
                 }else if (mushroom == 1){
                     player->hp += player->hp*0.3 ;
                     if (player->hp > player->max_hp) player->hp = player->max_hp;
