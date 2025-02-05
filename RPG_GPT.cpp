@@ -185,8 +185,8 @@ void battle(Player *player) {
 
     while (enemy.hp > 0 && player->hp > 0) {
         printf("\n=== 戰鬥中 ===\n");
-        printf("你: HP❤️ %d/%d MP🪄 %d/%d\n", player->hp, player->max_hp, player->mp, player->max_mp);
-        printf("%s: HP❤️ %d\n", enemy.name, enemy.hp);
+        printf("你: HP❤️ %d/%d MP🪄 %d/%d 攻擊力🥊 %d\n", player->hp, player->max_hp, player->mp, player->max_mp, player->attack);
+        printf("%s: HP❤️ %d 攻擊力🥊 %d\n", enemy.name, enemy.hp, enemy.attack);
 
         printf("\n選擇行動:\n1. 普通攻擊\n2. 使用技能\n");
         int choice;
@@ -377,11 +377,15 @@ void shop(Player *player) {
                 }
             }
         } else if (choice == 3) {
-            if (player->mp < player->max_mp){    
-                player->mp += 1;
-                player->gold -=10;
-                printf("你回復了1mp!");
-            }else printf("你的mp已滿，不能回復");
+            if (player->gold >= 10){
+                if (player->mp < player->max_mp){    
+                    player->mp += 1;
+                    player->gold -=10;
+                    printf("你回復了1mp!");
+                }else printf("你的mp已滿，不能回復");
+            }else {
+                printf("金幣不足!\n");
+            }
         } else {
             break;
         }
