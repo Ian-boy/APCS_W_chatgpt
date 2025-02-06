@@ -62,7 +62,7 @@ void init_player(Player *player) {
     player->next_level_exp = 100;
     player->key = 0;
     player->base_key = 0;
-    player->stage = 111;
+    player->stage = 1;
     player->mp = 10;
     player->max_mp = 10;
     for (int i = 0; i < 5; i++) {
