@@ -76,7 +76,7 @@ Enemy generate_enemy(Player *player) {
     int type = -1; // 初始化 type，避免未定義的情況
 
     if (player->stage == 1) {
-        if (player->level >= 3) {
+        if (player->level >= 4) {
             type = rand() % 6; // 允許惡龍出現
         } else if (player->level >= 2) {
             type = rand() % 5; // 不包含惡龍
@@ -84,9 +84,9 @@ Enemy generate_enemy(Player *player) {
             type = rand() % 2; // 只有史萊姆和哥布林
         }
     } else if (player->stage == 2) {
-        if (player->level >= 5) {
+        if (player->level >= 7) {
             type = rand() % 6; 
-        } else if (player->level >= 4) {
+        } else if (player->level >= 5) {
             type = rand() % 4; 
         } else {
             type = rand() % 2; 
@@ -136,10 +136,10 @@ Enemy generate_enemy(Player *player) {
             break;
         case 5:
             sprintf(enemy.name, player->stage == 1 ? "森林惡龍(BOOS)🐲" : "螢光蘑菇王(BOOS)🍄");
-            enemy.hp = player->stage == 1 ? 230 : 230;
-            enemy.attack = player->stage == 1 ? 15 : 50;
-            enemy.exp_reward = player->stage == 1 ? 150 : 250;
-            enemy.gold_reward = player->stage == 1 ? 100 : 150;
+            enemy.hp = player->stage == 1 ? 230 : 400;
+            enemy.attack = player->stage == 1 ? 40 : 70;
+            enemy.exp_reward = player->stage == 1 ? 200 : 350;
+            enemy.gold_reward = player->stage == 1 ? 200 : 350;
             enemy.key_reward = player->stage == 1 ? 1 : 2;
             break;
         default:
@@ -166,9 +166,9 @@ void level_up(Player *player) {
         player->level++;
         player->exp = 0;
         player->next_level_exp *= 1.5;
-        player->max_hp += 20;
+        player->max_hp += 10;
         player->hp = player->max_hp;
-        player->base_attack += 5;
+        player->base_attack += 3;
         player->attack += player->base_attack;
         player->max_mp +=1;
         player->mp = player->max_mp;
