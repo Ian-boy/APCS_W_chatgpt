@@ -420,7 +420,7 @@ void explore(Player *player) {
             printf("你發現了一個螢光蘑菇。\n是否吃掉個螢光蘑菇(有可能+hp or -hp or +exp)\n1.是\n2.否\n");
             scanf("%d",&choice);
             if (choice == 1){
-                int mushroom = rand() % 31;
+                int mushroom = rand() % 3;
                 if (mushroom == 0){
                     player->hp -= player->hp*0.6 ;
                     printf("你吃的蘑菇有毒,你減少了60趴的血量");
