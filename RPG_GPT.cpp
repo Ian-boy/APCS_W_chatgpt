@@ -25,7 +25,7 @@ typedef struct {
     int next_level_exp;
     int skills[5]; // 0:火球, 1:雷擊, 2:治癒, 3:冰凍, 4:爆裂擊
     Weapon inventory[6]; // 背包中的武器
-    int equipped_weapon_index; // 當前裝備的武器索引
+    int equipped_weapon_index[2]; // 當前裝備的兩個武器索引
     int key;
     int base_key;
     int stage;
@@ -57,7 +57,7 @@ void init_player(Player *player) {
     player->level = 1;
     player->hp = 100;
     player->max_hp = 100;
-    player->base_attack = 0;
+    player->base_attack = 10;
     player->attack = 10;
     player->gold = 50;
     player->exp = 0;
@@ -67,7 +67,8 @@ void init_player(Player *player) {
     player->stage = 1;
     player->mp = 10;
     player->max_mp = 10;
-    player->equipped_weapon_index = -1; // 初始未裝備武器
+    player->equipped_weapon_index[0] = -1; // 初始未裝備武器
+    player->equipped_weapon_index[1] = -1; // 初始未裝備第二個武器
     for (int i = 0; i < 5; i++) {
         player->skills[i] = 0;
     }
@@ -162,10 +163,15 @@ void show_status(Player *player) {
     printf("等級: %d  HP❤️: %d/%d  MP️🪄 : %d/%d  攻擊力🥊: %d  金錢💰: %d  經驗值: %d/%d 目前關卡:%d\n",
            player->level, player->hp, player->max_hp, player->mp, player->max_mp, player->attack, player->gold,
            player->exp, player->next_level_exp, player->stage);
-    if (player->equipped_weapon_index != -1) {
-        printf("裝備武器: %s (+%d 攻擊)\n", player->inventory[player->equipped_weapon_index].name, player->inventory[player->equipped_weapon_index].attack_bonus);
+    if (player->equipped_weapon_index[0] != -1) {
+        printf("裝備武器1: %s (+%d 攻擊)\n", player->inventory[player->equipped_weapon_index[0]].name, player->inventory[player->equipped_weapon_index[0]].attack_bonus);
     } else {
-        printf("未裝備武器\n");
+        printf("未裝備武器1\n");
+    }
+    if (player->equipped_weapon_index[1] != -1) {
+        printf("裝備武器2: %s (+%d 攻擊)\n", player->inventory[player->equipped_weapon_index[1]].name, player->inventory[player->equipped_weapon_index[1]].attack_bonus);
+    } else {
+        printf("未裝備武器2\n");
     }
 }
 
@@ -178,9 +184,12 @@ void level_up(Player *player) {
         player->max_hp += 10;
         player->hp = player->max_hp;
         player->base_attack += 3;
-        player->attack += player->base_attack; 
-        if (player->equipped_weapon_index != -1) {
-            player->attack += player->inventory[player->equipped_weapon_index].attack_bonus;
+        player->attack = player->base_attack; // 重新計算攻擊力
+        if (player->equipped_weapon_index[0] != -1) {
+            player->attack += player->inventory[player->equipped_weapon_index[0]].attack_bonus;
+        }
+        if (player->equipped_weapon_index[1] != -1) {
+            player->attack += player->inventory[player->equipped_weapon_index[1]].attack_bonus;
         }
         player->max_mp += 1;
         player->mp = player->max_mp;
@@ -423,8 +432,28 @@ void equip_weapon(Player *player) {
     scanf("%d", &equip_choice);
 
     if (equip_choice >= 1 && equip_choice <= 6 && player->inventory[equip_choice - 1].attack_bonus > 0) {
-        player->equipped_weapon_index = equip_choice - 1;
-        player->attack += player->inventory[equip_choice - 1].attack_bonus;
+        printf("選擇要裝備到哪個位置:\n1. 第一個武器\n2. 第二個武器\n");
+        int position_choice;
+        scanf("%d", &position_choice);
+
+        if (position_choice == 1) {
+            player->equipped_weapon_index[0] = equip_choice - 1;
+        } else if (position_choice == 2) {
+            player->equipped_weapon_index[1] = equip_choice - 1;
+        } else {
+            printf("無效選擇!\n");
+            return;
+        }
+
+        // 重新計算攻擊力
+        player->attack = player->base_attack;
+        if (player->equipped_weapon_index[0] != -1) {
+            player->attack += player->inventory[player->equipped_weapon_index[0]].attack_bonus;
+        }
+        if (player->equipped_weapon_index[1] != -1) {
+            player->attack += player->inventory[player->equipped_weapon_index[1]].attack_bonus;
+        }
+
         printf("你裝備了 %s!\n", player->inventory[equip_choice - 1].name);
     } else {
         printf("無效選擇!\n");
@@ -544,7 +573,7 @@ int main() {
         else if (choice == 3) stage(&player);
         else if (choice == 4) equip_weapon(&player);
         else printf("無效選擇!\n");
-        
+
     }
 
     return 0;
