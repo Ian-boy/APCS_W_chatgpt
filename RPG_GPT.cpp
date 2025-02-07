@@ -1,6 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
+
+// 武器結構
+typedef struct {
+    char name[30];
+    int attack_bonus;
+    int price;
+} Weapon;
 
 // 玩家結構
 typedef struct {
@@ -16,7 +24,8 @@ typedef struct {
     int exp;
     int next_level_exp;
     int skills[5]; // 0:火球, 1:雷擊, 2:治癒, 3:冰凍, 4:爆裂擊
-    int weapons[6];
+    Weapon inventory[6]; // 背包中的武器
+    int equipped_weapon_index; // 當前裝備的武器索引
     int key;
     int base_key;
     int stage;
@@ -31,13 +40,6 @@ typedef struct {
     int gold_reward;
     int key_reward;
 } Enemy;
-
-// 武器結構
-typedef struct {
-    char name[30];
-    int attack_bonus;
-    int price;
-} Weapon;
 
 // 技能結構
 typedef struct {
@@ -65,8 +67,12 @@ void init_player(Player *player) {
     player->stage = 1;
     player->mp = 10;
     player->max_mp = 10;
+    player->equipped_weapon_index = -1; // 初始未裝備武器
     for (int i = 0; i < 5; i++) {
         player->skills[i] = 0;
+    }
+    for (int i = 0; i < 6; i++) {
+        player->inventory[i].attack_bonus = 0; // 初始化背包中的武器
     }
 }
 
@@ -85,11 +91,11 @@ Enemy generate_enemy(Player *player) {
         }
     } else if (player->stage == 2) {
         if (player->level >= 7) {
-            type = rand() % 6; 
+            type = rand() % 6;
         } else if (player->level >= 5) {
-            type = rand() % 4; 
+            type = rand() % 4;
         } else {
-            type = rand() % 2; 
+            type = rand() % 2;
         }
     }
 
@@ -150,14 +156,17 @@ Enemy generate_enemy(Player *player) {
     return enemy;
 }
 
-
-
 // 顯示狀態
 void show_status(Player *player) {
     printf("\n--- %s 的狀態 ---\n", player->name);
     printf("等級: %d  HP❤️: %d/%d  MP️🪄 : %d/%d  攻擊力🥊: %d  金錢💰: %d  經驗值: %d/%d 目前關卡:%d\n",
            player->level, player->hp, player->max_hp, player->mp, player->max_mp, player->attack, player->gold,
-           player->exp, player->next_level_exp,player->stage);
+           player->exp, player->next_level_exp, player->stage);
+    if (player->equipped_weapon_index != -1) {
+        printf("裝備武器: %s (+%d 攻擊)\n", player->inventory[player->equipped_weapon_index].name, player->inventory[player->equipped_weapon_index].attack_bonus);
+    } else {
+        printf("未裝備武器\n");
+    }
 }
 
 // 升級系統
@@ -169,14 +178,18 @@ void level_up(Player *player) {
         player->max_hp += 10;
         player->hp = player->max_hp;
         player->base_attack += 3;
-        player->attack += player->base_attack;
-        player->max_mp +=1;
+        player->attack += player->base_attack; 
+        if (player->equipped_weapon_index != -1) {
+            player->attack += player->inventory[player->equipped_weapon_index].attack_bonus;
+        }
+        player->max_mp += 1;
         player->mp = player->max_mp;
         printf("\n*** 恭喜升級! 等級: %d  最大生命: %d  攻擊力: %d ***\n",
                player->level, player->max_hp, player->attack);
     }
 }
-//戰鬥系統
+
+// 戰鬥系統
 void battle(Player *player) {
     Enemy enemy = generate_enemy(player);
     int frozen_turn = 0;
@@ -198,7 +211,7 @@ void battle(Player *player) {
         } else if (choice == 2) {
             Skill skills[] = {
                 {"火球🔥", 1.5, 0, 1},
-                {"雷擊⚡",2.0, 0, 3},
+                {"雷擊⚡", 2.0, 0, 3},
                 {"治癒🏥", 0.0, 30, 2},
                 {"冰凍🧊", 1.2, 0, 3},
                 {"爆裂擊🧨", 2.5, 0, 4}
@@ -216,7 +229,7 @@ void battle(Player *player) {
             scanf("%d", &skill_choice);
 
             if (skill_choice >= 1 && skill_choice <= 5 && player->skills[skill_choice - 1]) {
-                if (skills[skill_choice - 1].mp <= player->mp){
+                if (skills[skill_choice - 1].mp <= player->mp) {
                     player->mp -= skills[skill_choice - 1].mp;
                     if (skills[skill_choice - 1].heal > 0) {
                         printf("你施放 %s，恢復 %d HP!\n", skills[skill_choice - 1].name, skills[skill_choice - 1].heal);
@@ -232,13 +245,13 @@ void battle(Player *player) {
                             } else {
                                 printf("你施放 %s，但攻擊失敗了!\n", skills[skill_choice - 1].name);
                             }
-                        } 
+                        }
                         // **冰凍 (50% 機率成功)**
                         else if (skill_choice == 4) {
                             int damage = player->attack * skills[skill_choice - 1].attack_multiplier;
                             printf("你施放 %s，造成 %d 傷害!\n", skills[skill_choice - 1].name, damage);
                             enemy.hp -= damage;
-                            if (rand() % 2 == 0) { 
+                            if (rand() % 2 == 0) {
                                 printf("冰凍成功🧊! %s 無法行動 1 回合🥶!\n", enemy.name);
                                 frozen_turn = 1;
                             } else {
@@ -253,9 +266,9 @@ void battle(Player *player) {
                         }
                     }
                 } else {
-                    printf("你的MP不夠");
+                    printf("你的MP不夠\n");
                     continue;
-                }    
+                }
             } else {
                 printf("無效選擇!\n");
                 continue;
@@ -275,123 +288,180 @@ void battle(Player *player) {
         printf("\n你打敗了 %s!\n", enemy.name);
         player->exp += enemy.exp_reward;
         player->gold += enemy.gold_reward;
-        if (enemy.key_reward > 0){
-            player->key=enemy.key_reward;
-            if (player->key<player->base_key){
-            player->key=player->base_key;
-            }
-            else {
-                player->base_key=enemy.key_reward;
-                printf("%s掉落了通往第%d關的鑰匙\n你檢你了鑰匙\n你解鎖了第%d關",enemy.name,enemy.key_reward+1,enemy.key_reward+1);
+        if (enemy.key_reward > 0) {
+            player->key = enemy.key_reward;
+            if (player->key < player->base_key) {
+                player->key = player->base_key;
+            } else {
+                player->base_key = enemy.key_reward;
+                printf("%s掉落了通往第%d關的鑰匙\n你檢你了鑰匙\n你解鎖了第%d關", enemy.name, enemy.key_reward + 1, enemy.key_reward + 1);
             }
         }
-    }else {
+    } else {
         printf("\n你被打敗了...\n");
         printf("金幣歸零，你復活了!\n");
         player->gold = 0;
         player->hp = player->max_hp * 0.83;
     }
 }
-// 商店系統
-void shop(Player *player) {
+
+// 購買武器
+void buy_weapon(Player *player) {
     Weapon weapons[] = {
-        {"木劍️", 1,20},
+        {"木劍️", 1, 20},
         {"銅劍", 2, 40},
         {"鐵劍", 3, 60},
         {"鋼劍", 5, 100},
         {"魔劍", 10, 200}
     };
 
+    printf("選擇武器:\n");
+    int available = 0;
+    for (int i = 0; i < 5; i++) {
+        int already_owned = 0;
+        for (int j = 0; j < 6; j++) {
+            if (strcmp(player->inventory[j].name, weapons[i].name) == 0) {
+                already_owned = 1;
+                break;
+            }
+        }
+        if (!already_owned) {
+            printf("%d. %s (+%d 攻擊) - %d 金幣\n", i + 1, weapons[i].name, weapons[i].attack_bonus, weapons[i].price);
+            available = 1;
+        }
+    }
+    if (!available) {
+        printf("你已經買完所有武器了！\n");
+        return;
+    }
+    printf("0. 取消\n");
+
+    int w_choice;
+    scanf("%d", &w_choice);
+
+    if (w_choice >= 1 && w_choice <= 5) {
+        int already_owned = 0;
+        for (int j = 0; j < 6; j++) {
+            if (strcmp(player->inventory[j].name, weapons[w_choice - 1].name) == 0) {
+                already_owned = 1;
+                break;
+            }
+        }
+        if (already_owned) {
+            printf("你已經擁有 %s，不能再買！\n", weapons[w_choice - 1].name);
+        } else if (player->gold >= weapons[w_choice - 1].price) {
+            for (int j = 0; j < 6; j++) {
+                if (player->inventory[j].attack_bonus == 0) {
+                    player->inventory[j] = weapons[w_choice - 1];
+                    player->gold -= weapons[w_choice - 1].price;
+                    printf("你購買了 %s!\n", weapons[w_choice - 1].name);
+                    break;
+                }
+            }
+        } else {
+            printf("金幣不足!\n");
+        }
+    }
+}
+
+// 購買技能
+void buy_skill(Player *player) {
     Skill skills[] = {
         {"火球🔥", 1.5, 0, 1, 50},
-        {"雷擊⚡",2.0, 0, 3, 80},
+        {"雷擊⚡", 2.0, 0, 3, 80},
         {"治癒🏥", 0.0, 30, 2, 70},
         {"冰凍🧊", 1.2, 0, 3, 60},
         {"爆裂擊🧨", 2.5, 0, 4, 100}
     };
 
+    printf("選擇技能:\n");
+    int available = 0;
+    for (int i = 0; i < 5; i++) {
+        if (player->skills[i] == 0) {
+            printf("%d. %s (%.0f%% 傷害) - %d  - 使用時消耗 %d mp\n", i + 1, skills[i].name, skills[i].attack_multiplier * 100, skills[i].price, skills[i].mp);
+            available = 1;
+        }
+    }
+    if (!available) {
+        printf("你已經學會所有技能了！\n");
+        return;
+    }
+    printf("0. 取消\n");
+
+    int s_choice;
+    scanf("%d", &s_choice);
+    if (s_choice >= 1 && s_choice <= 5) {
+        if (player->skills[s_choice - 1] == 1) {  // **防止購買已學會的技能**
+            printf("你已經學會 %s，不能再買！\n", skills[s_choice - 1].name);
+        } else if (player->gold >= skills[s_choice - 1].price) {
+            player->skills[s_choice - 1] = 1;
+            player->gold -= skills[s_choice - 1].price;
+            printf("你學會了 %s!\n", skills[s_choice - 1].name);
+        } else {
+            printf("金幣不足!\n");
+        }
+    }
+}
+
+// 裝備武器
+void equip_weapon(Player *player) {
+    printf("選擇要裝備的武器:\n");
+    int available = 0;
+    for (int i = 0; i < 6; i++) {
+        if (player->inventory[i].attack_bonus > 0) {
+            printf("%d. %s (+%d 攻擊)\n", i + 1, player->inventory[i].name, player->inventory[i].attack_bonus);
+            available = 1;
+        }
+    }
+    if (!available) {
+        printf("你沒有可裝備的武器！\n");
+        return;
+    }
+    printf("0. 取消\n");
+
+    int equip_choice;
+    scanf("%d", &equip_choice);
+
+    if (equip_choice >= 1 && equip_choice <= 6 && player->inventory[equip_choice - 1].attack_bonus > 0) {
+        player->equipped_weapon_index = equip_choice - 1;
+        player->attack += player->inventory[equip_choice - 1].attack_bonus;
+        printf("你裝備了 %s!\n", player->inventory[equip_choice - 1].name);
+    } else {
+        printf("無效選擇!\n");
+    }
+}
+
+// 商店系統
+void shop(Player *player) {
     while (1) {
         printf("\n--- 商店 ---\n");
-        printf("1. 買武器⚔️\n2. 買技能🔥\n3. 回復1MP - 10金幣\n4. 離開\n");
+        printf("1. 買武器⚔️\n2. 買技能🔥\n3. 回復1MP - 10金幣\n4. 裝備武器\n5. 離開\n");
         int choice;
         scanf("%d", &choice);
 
-        if (choice == 1) { // 買武器⚔️
-            printf("選擇武器:\n");
-            int available = 0;  
-            for (int i = 0; i < 5; i++) {
-                if (player->weapons[i] == 0) {  
-                    printf("%d. %s (+%d 攻擊) - %d 金幣\n", i + 1, weapons[i].name, weapons[i].attack_bonus, weapons[i].price);
-                    available = 1;
-                }
-            }
-            if (!available) {
-                printf("你已經買完所有武器了！\n");
-                continue;
-            }
-            printf("0. 取消\n");
-
-            int w_choice;
-            scanf("%d", &w_choice);
-
-            // **新增檢查: 若武器已購買，阻止購買**
-            if (w_choice >= 1 && w_choice <= 5) {
-                if (player->weapons[w_choice - 1] == 1) {  // **防止購買已購買的武器**
-                    printf("你已經擁有 %s，不能再買！\n", weapons[w_choice - 1].name);
-                } else if (player->gold >= weapons[w_choice - 1].price) {
-                    player->attack += weapons[w_choice - 1].attack_bonus;
-                    player->gold -= weapons[w_choice - 1].price;
-                    player->weapons[w_choice - 1] = 1;  
-                    printf("你購買並裝備了 %s!\n", weapons[w_choice - 1].name);
-                } else {
-                    printf("金幣不足!\n");
-                }
-            }
-
-        } else if (choice == 2) { // 買技能🔥
-            printf("選擇技能:\n");
-            int available = 0;
-            for (int i = 0; i < 5; i++) {
-                if (player->skills[i] == 0) {
-                    printf("%d. %s (%.0f%% 傷害) - %d  - 使用時消耗 %d mp\n", i + 1, skills[i].name, skills[i].attack_multiplier * 100, skills[i].price, skills[i].mp);
-                    available = 1;
-                }
-            }
-            if (!available) {
-                printf("你已經學會所有技能了！\n");
-                continue;
-            }
-            printf("0. 取消\n");
-
-            int s_choice;
-            scanf("%d", &s_choice);
-            if (s_choice >= 1 && s_choice <= 5) {
-                if (player->skills[s_choice - 1] == 1) {  // **防止購買已學會的技能**
-                    printf("你已經學會 %s，不能再買！\n", skills[s_choice - 1].name);
-                } else if (player->gold >= skills[s_choice - 1].price) {
-                    player->skills[s_choice - 1] = 1;
-                    player->gold -= skills[s_choice - 1].price;
-                    printf("你學會了 %s!\n", skills[s_choice - 1].name);
-                } else {
-                    printf("金幣不足!\n");
-                }
-            }
+        if (choice == 1) {
+            buy_weapon(player);
+        } else if (choice == 2) {
+            buy_skill(player);
         } else if (choice == 3) {
-            if (player->gold >= 10){
-                if (player->mp < player->max_mp){    
+            if (player->gold >= 10) {
+                if (player->mp < player->max_mp) {
                     player->mp += 1;
-                    player->gold -=10;
-                    printf("你回復了1mp!");
-                }else printf("你的mp已滿，不能回復");
-            }else {
+                    player->gold -= 10;
+                    printf("你回復了1mp!\n");
+                } else {
+                    printf("你的mp已滿，不能回復\n");
+                }
+            } else {
                 printf("金幣不足!\n");
             }
+        } else if (choice == 4) {
+            equip_weapon(player);
         } else {
             break;
         }
     }
 }
-
 
 // 地圖探索系統
 void explore(Player *player) {
@@ -412,47 +482,52 @@ void explore(Player *player) {
         player->hp += hp_found;
         if (player->hp > player->max_hp) player->hp = player->max_hp;
     } else {
-        if (player->stage == 1){
+        if (player->stage == 1) {
             printf("你探索了一會兒，但什麼都沒發現。\n");
-        }   
-        else{
+        } else {
             int choice;
             printf("你發現了一個螢光蘑菇。\n是否吃掉個螢光蘑菇(有可能+hp or -hp or +exp)\n1.是\n2.否\n");
-            scanf("%d",&choice);
-            if (choice == 1){
+            scanf("%d", &choice);
+            if (choice == 1) {
                 int mushroom = rand() % 3;
-                if (mushroom == 0){
-                    player->hp -= player->hp*0.6 ;
-                    printf("你吃的蘑菇有毒,你減少了60趴的血量");
-                }else if (mushroom == 1){
-                    player->hp += player->hp*0.3 ;
+                if (mushroom == 0) {
+                    player->hp -= player->hp * 0.6;
+                    printf("你吃的蘑菇有毒,你減少了60趴的血量\n");
+                } else if (mushroom == 1) {
+                    player->hp += player->hp * 0.3;
                     if (player->hp > player->max_hp) player->hp = player->max_hp;
-                    printf("你吃的蘑菇有回復效果,你回復了30趴的血量");
-                }else{
+                    printf("你吃的蘑菇有回復效果,你回復了30趴的血量\n");
+                } else {
                     player->exp += 50;
-                    printf("你吃的蘑菇有經驗值,你增加了50經驗值");
-                }    
+                    printf("你吃的蘑菇有經驗值,你增加了50經驗值\n");
+                }
             }
         }
     }
 }
-//關卡
-void stage(Player *player){
-    for (int i = 1; i < 6; i++){
-        if (player->key+1>=i){
-            printf("%d.第%d關\n",i,i);
+
+// 關卡
+void stage(Player *player) {
+    for (int i = 1; i < 6; i++) {
+        if (player->key + 1 >= i) {
+            printf("%d.第%d關\n", i, i);
+        } else {
+            printf("%d.第%d關(未解鎖)\n", i, i);
         }
-        else printf("%d.第%d關(未解鎖)\n",i,i);
     }
     int choice;
     scanf("%d", &choice);
-    if (player->key+1>=choice){
-        for (int i=1; i < 6; i++){
-        if (choice == i){
-        player->stage = player->key+1;}
+    if (player->key + 1 >= choice) {
+        for (int i = 1; i < 6; i++) {
+            if (choice == i) {
+                player->stage = player->key + 1;
+            }
         }
-    }else printf("你還未解鎖這關");
+    } else {
+        printf("你還未解鎖這關\n");
+    }
 }
+
 // 主函數
 int main() {
     srand(time(NULL));
@@ -461,13 +536,15 @@ int main() {
     while (1) {
         level_up(&player);
         show_status(&player);
-        printf("\n1. 探索地圖\n2. 商店\n3.切換關卡\n");
+        printf("\n1. 探索地圖\n2. 商店\n3.切換關卡\n4.背包\n");
         int choice;
         scanf("%d", &choice);
         if (choice == 1) explore(&player);
         else if (choice == 2) shop(&player);
         else if (choice == 3) stage(&player);
+        else if (choice == 4) equip_weapon(&player);
         else printf("無效選擇!\n");
+        
     }
 
     return 0;
