@@ -29,6 +29,7 @@ typedef struct {
     int key;
     int base_key;
     int stage;
+    int day;
 } Player;
 
 // 敵人結構
@@ -67,6 +68,7 @@ void init_player(Player *player) {
     player->stage = 1;
     player->mp = 10;
     player->max_mp = 10;
+    player->day = 1;
     player->equipped_weapon_index[0] = -1; // 初始未裝備武器
     player->equipped_weapon_index[1] = -1; // 初始未裝備第二個武器
     for (int i = 0; i < 5; i++) {
@@ -168,9 +170,9 @@ Enemy generate_enemy(Player *player) {
 // 顯示狀態
 void show_status(Player *player) {
     printf("\n--- %s 的狀態 ---\n", player->name);
-    printf("等級: %d  HP❤️: %d/%d  MP️🪄 : %d/%d  攻擊力🥊: %d  金錢💰: %d  經驗值: %d/%d 目前關卡:%d\n",
+    printf("等級: %d  HP❤️: %d/%d  MP️🪄 : %d/%d  攻擊力🥊: %d  金錢💰: %d  經驗值: %d/%d 第%d天 目前關卡:%d\n",
            player->level, player->hp, player->max_hp, player->mp, player->max_mp, player->attack, player->gold,
-           player->exp, player->next_level_exp, player->stage);
+           player->exp, player->next_level_exp, player->day, player->stage);
     if (player->equipped_weapon_index[0] != -1) {
         printf("裝備武器1: %s (+%d 攻擊)\n", player->inventory[player->equipped_weapon_index[0]].name, player->inventory[player->equipped_weapon_index[0]].attack_bonus);
     } else {
@@ -595,10 +597,13 @@ int main() {
     while (1) {
         level_up(&player);
         show_status(&player);
-        printf("\n1. 探索地圖\n2. 商店\n3.切換關卡\n4.背包\n");
+        printf("\n1. 探索地圖(下一天)\n2. 商店\n3.切換關卡\n4.背包\n");
         int choice;
         scanf("%d", &choice);
-        if (choice == 1) explore(&player);
+        if (choice == 1) {
+            player.day += 1;
+            explore(&player);
+        }
         else if (choice == 2) shop(&player);
         else if (choice == 3) stage(&player);
         else if (choice == 4) equip_weapon(&player);
