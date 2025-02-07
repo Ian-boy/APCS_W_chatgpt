@@ -64,7 +64,7 @@ void init_player(Player *player) {
     player->next_level_exp = 100;
     player->key = 0;
     player->base_key = 0;
-    player->stage = 1;
+    player->stage = 3;
     player->mp = 10;
     player->max_mp = 10;
     player->equipped_weapon_index[0] = -1; // 初始未裝備武器
@@ -98,64 +98,72 @@ Enemy generate_enemy(Player *player) {
         } else {
             type = rand() % 2;
         }
+    } else if (player->stage == 3) {
+        if (player->level >= 10) {
+            type = rand() % 6;
+        } else if (player->level >= 8) {
+            type = rand() % 4;
+        } else {
+            type = rand() % 2;
+        }
     }
 
     switch (type) {
         case 0:
-            sprintf(enemy.name, player->stage == 1 ? "普通史萊姆" : "螢光史萊姆");
-            enemy.hp = player->stage == 1 ? 50 : 100;
-            enemy.attack = player->stage == 1 ? 5 : 10;
-            enemy.exp_reward = player->stage == 1 ? 20 : 40;
-            enemy.gold_reward = player->stage == 1 ? 10 : 20;
+            sprintf(enemy.name, player->stage == 1 ? "普通史萊姆" : player->stage == 2 ? "螢光史萊姆" : "熔岩史萊姆");
+            enemy.hp = player->stage == 1 ? 50 : player->stage == 2 ? 100 : 150;
+            enemy.attack = player->stage == 1 ? 5 : player->stage == 2 ? 10 : 15;
+            enemy.exp_reward = player->stage == 1 ? 20 : player->stage == 2 ? 40 : 60;
+            enemy.gold_reward = player->stage == 1 ? 10 : player->stage == 2 ? 20 : 30;
             enemy.key_reward = 0;
             break;
         case 1:
-            sprintf(enemy.name, player->stage == 1 ? "哥布林" : "夜行哥布林");
-            enemy.hp = player->stage == 1 ? 80 : 160;
-            enemy.attack = player->stage == 1 ? 8 : 16;
-            enemy.exp_reward = player->stage == 1 ? 30 : 60;
-            enemy.gold_reward = player->stage == 1 ? 15 : 30;
+            sprintf(enemy.name, player->stage == 1 ? "哥布林" : player->stage == 2 ? "夜行哥布林" : "熔岩哥布林");
+            enemy.hp = player->stage == 1 ? 80 : player->stage == 2 ? 160 : 240;
+            enemy.attack = player->stage == 1 ? 8 : player->stage == 2 ? 16 : 24;
+            enemy.exp_reward = player->stage == 1 ? 30 : player->stage == 2 ? 60 : 90;
+            enemy.gold_reward = player->stage == 1 ? 15 : player->stage == 2 ? 30 : 45;
             enemy.key_reward = 0;
             break;
         case 2:
-            sprintf(enemy.name, player->stage == 1 ? "大富翁哥布林" : "螢光蘑菇怪");
-            enemy.hp = player->stage == 1 ? 90 : 300;
-            enemy.attack = player->stage == 1 ? 9 : 32;
-            enemy.exp_reward = player->stage == 1 ? 40 : 200;
-            enemy.gold_reward = player->stage == 1 ? 80 : 80;
+            sprintf(enemy.name, player->stage == 1 ? "大富翁哥布林" : player->stage == 2 ? "螢光蘑菇怪" : "熔岩怪");
+            enemy.hp = player->stage == 1 ? 90 : player->stage == 2 ? 300 : 400;
+            enemy.attack = player->stage == 1 ? 9 : player->stage == 2 ? 32 : 40;
+            enemy.exp_reward = player->stage == 1 ? 40 : player->stage == 2 ? 200 : 250;
+            enemy.gold_reward = player->stage == 1 ? 80 : player->stage == 2 ? 80 : 100;
             enemy.key_reward = 0;
             break;
         case 3:
-            sprintf(enemy.name, player->stage == 1 ? "巨人" : "森林甲蟲");
-            enemy.hp = player->stage == 1 ? 150 : 500;
-            enemy.attack = player->stage == 1 ? 9 : 10;
-            enemy.exp_reward = player->stage == 1 ? 80 : 170;
-            enemy.gold_reward = player->stage == 1 ? 40 : 70;
+            sprintf(enemy.name, player->stage == 1 ? "巨人" : player->stage == 2 ? "森林甲蟲" : "熔岩石");
+            enemy.hp = player->stage == 1 ? 150 : player->stage == 2 ? 500 : 700;
+            enemy.attack = player->stage == 1 ? 9 : player->stage == 2 ? 10 : 15;
+            enemy.exp_reward = player->stage == 1 ? 80 : player->stage == 2 ? 170 : 220;
+            enemy.gold_reward = player->stage == 1 ? 40 : player->stage == 2 ? 70 : 100;
             enemy.key_reward = 0;
             break;
         case 4:
-            sprintf(enemy.name, player->stage == 1 ? "狼人" : "蘑菇怪");
-            enemy.hp = player->stage == 1 ? 120 : 200;
-            enemy.attack = player->stage == 1 ? 12 : 20;
-            enemy.exp_reward = player->stage == 1 ? 50 : 150;
-            enemy.gold_reward = player->stage == 1 ? 25 : 80;
+            sprintf(enemy.name, player->stage == 1 ? "狼人" : player->stage == 2 ? "蘑菇怪" : "熔岩鯊魚");
+            enemy.hp = player->stage == 1 ? 120 : player->stage == 2 ? 200 : 300;
+            enemy.attack = player->stage == 1 ? 12 : player->stage == 2 ? 20 : 50;
+            enemy.exp_reward = player->stage == 1 ? 50 : player->stage == 2 ? 150 : 180;
+            enemy.gold_reward = player->stage == 1 ? 25 : player->stage == 2 ? 80 : 100;
             enemy.key_reward = 0;
             break;
         case 5:
-            sprintf(enemy.name, player->stage == 1 ? "森林惡龍(BOOS)🐲" : "螢光蘑菇王(BOOS)🍄");
-            enemy.hp = player->stage == 1 ? 230 : 400;
-            enemy.attack = player->stage == 1 ? 40 : 70;
-            enemy.exp_reward = player->stage == 1 ? 200 : 350;
-            enemy.gold_reward = player->stage == 1 ? 200 : 350;
-            enemy.key_reward = player->stage == 1 ? 1 : 2;
+            sprintf(enemy.name, player->stage == 1 ? "森林惡龍(BOOS)🐲" : player->stage == 2 ? "螢光蘑菇王(BOOS)🍄" : "熔岩火山(BOOS)🔥");
+            enemy.hp = player->stage == 1 ? 230 : player->stage == 2 ? 400 : 1000;
+            enemy.attack = player->stage == 1 ? 40 : player->stage == 2 ? 70 : 50;
+            enemy.exp_reward = player->stage == 1 ? 200 : player->stage == 2 ? 350 : 600;
+            enemy.gold_reward = player->stage == 1 ? 200 : player->stage == 2 ? 350 : 600;
+            enemy.key_reward = player->stage == 1 ? 1 : player->stage == 2 ? 2 : 3;
             break;
         default:
             printf("敵人生成錯誤，重新生成...\n");
             return generate_enemy(player); // 遇到錯誤時重新生成敵人
     }
-
     return enemy;
 }
+
 
 // 顯示狀態
 void show_status(Player *player) {
@@ -518,7 +526,7 @@ void explore(Player *player) {
     } else {
         if (player->stage == 1) {
             printf("你探索了一會兒，但什麼都沒發現。\n");
-        } else {
+        } else if (player->stage == 2) {
             int choice;
             printf("你發現了一個螢光蘑菇。\n是否吃掉個螢光蘑菇(有可能+hp or -hp or +exp)\n1.是\n2.否\n");
             scanf("%d", &choice);
@@ -534,6 +542,23 @@ void explore(Player *player) {
                 } else {
                     player->exp += 50;
                     printf("你吃的蘑菇有經驗值,你增加了50經驗值\n");
+                }
+            }
+        } else if (player->stage == 3) {
+            int choice;
+            printf("你發現了一個熔岩蛋糕。\n是否吃掉個熔岩蛋糕(有可能+999錢 or -hp or +1000exp)\n1.是\n2.否\n");
+            scanf("%d", &choice);
+            if (choice == 1) {
+                int mushroom = rand() % 4;
+                if (mushroom == 0) {
+                    player->hp -= player->hp * 0.99;
+                    printf("你吃的熔岩蛋糕,你減少了99趴的血量\n");
+                } else if (mushroom == 1) {
+                    player->exp += 999;
+                    printf("你吃的熔岩蛋糕中有錢,你得到了999元\n");
+                } else {
+                    player->exp += 1000;
+                    printf("你吃的熔岩蛋糕中有經驗值,你增加了1000經驗值\n");
                 }
             }
         }
