@@ -64,7 +64,7 @@ void init_player(Player *player) {
     player->next_level_exp = 100;
     player->key = 0;
     player->base_key = 0;
-    player->stage = 3;
+    player->stage = 1;
     player->mp = 10;
     player->max_mp = 10;
     player->equipped_weapon_index[0] = -1; // 初始未裝備武器
