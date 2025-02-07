@@ -180,7 +180,7 @@ void level_up(Player *player) {
     if (player->exp >= player->next_level_exp) {
         player->level++;
         player->exp = 0;
-        player->next_level_exp *= 1.5;
+        player->next_level_exp *= 1.25;
         player->max_hp += 10;
         player->hp = player->max_hp;
         player->base_attack += 3;
@@ -317,11 +317,11 @@ void battle(Player *player) {
 // 購買武器
 void buy_weapon(Player *player) {
     Weapon weapons[] = {
-        {"木劍️", 1, 20},
-        {"銅劍", 2, 40},
-        {"鐵劍", 3, 60},
-        {"鋼劍", 5, 100},
-        {"魔劍", 10, 200}
+        {"木劍️", 2, 20},
+        {"銅劍", 4, 40},
+        {"鐵劍", 6, 60},
+        {"鋼劍", 10, 100},
+        {"魔劍", 20, 200}
     };
 
     printf("選擇武器:\n");
@@ -496,20 +496,25 @@ void shop(Player *player) {
 void explore(Player *player) {
     printf("\n=== 你開始探索地圖... ===\n");
 
-    int event = rand() % 4; // 0: 遇敵, 1: 發現寶箱, 2: 無事發生
+    int event = rand() % 6; // 0: 遇敵, 1: 發現寶箱, 2: 無事發生
 
-    if (event == 0) {
+    if (event == 0 || event == 4) {
         printf("你遇到了一個敵人!\n");
         battle(player);
     } else if (event == 1) {
-        int gold_found = (rand() % 50) + 10; // 獲得 10~50 金幣
+        int gold_found = (rand() % 30) + 10; // 獲得 10~50 金幣
         printf("你發現了一個寶箱! 內有 %d 金幣!\n", gold_found);
         player->gold += gold_found;
     } else if (event == 2) {
-        int hp_found = (rand() % 40) + 10; // 獲得 10~50 金幣
+        int hp_found = (rand() % 40) + 10; 
         printf("你發現了一個無人的營帳! \n你在裡面休息了一晚上，回復了 %d HP❤️!\n", hp_found);
         player->hp += hp_found;
         if (player->hp > player->max_hp) player->hp = player->max_hp;
+    } else if (event == 3) {
+        int mp_found = (rand() % 2) + 1; 
+        printf("你發現了一個無人的營帳! \n你在裡面休息了一晚上，回復了 %d MP🪄!\n", mp_found);
+        player->mp += mp_found;
+        if (player->mp > player->max_mp) player->mp = player->max_mp;
     } else {
         if (player->stage == 1) {
             printf("你探索了一會兒，但什麼都沒發現。\n");
