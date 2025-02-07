@@ -554,7 +554,7 @@ void explore(Player *player) {
                     player->hp -= player->hp * 0.99;
                     printf("你吃的熔岩蛋糕,你減少了99趴的血量\n");
                 } else if (mushroom == 1) {
-                    player->exp += 999;
+                    player->gold += 999;
                     printf("你吃的熔岩蛋糕中有錢,你得到了999元\n");
                 } else {
                     player->exp += 1000;
