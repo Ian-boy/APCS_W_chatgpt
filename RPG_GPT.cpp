@@ -60,12 +60,12 @@ void init_player(Player *player) {
     player->max_hp = 100;
     player->base_attack = 10;
     player->attack = 10;
-    player->gold = 50;
+    player->gold = 50000;
     player->exp = 0;
     player->next_level_exp = 100;
     player->key = 0;
     player->base_key = 0;
-    player->stage = 1;
+    player->stage = 2;
     player->mp = 10;
     player->max_mp = 10;
     player->day = 1;
@@ -166,7 +166,6 @@ Enemy generate_enemy(Player *player) {
     return enemy;
 }
 
-
 // 顯示狀態
 void show_status(Player *player) {
     printf("\n--- %s 的狀態 ---\n", player->name);
@@ -229,15 +228,17 @@ void battle(Player *player) {
             enemy.hp -= player->attack;
         } else if (choice == 2) {
             Skill skills[] = {
-                {"火球🔥", 1.5, 0, 1},
-                {"雷擊⚡", 2.0, 0, 3},
-                {"治癒🏥", 0.0, 30, 2},
-                {"冰凍🧊", 1.2, 0, 3},
-                {"爆裂擊🧨", 2.5, 0, 4}
-            };
+            {"火球🔥", 1.5, 0, 1, 50},
+            {"雷擊⚡", 2.0, 0, 3, 80},
+            {"治癒🏥", 0.0, 30, 2, 70},
+            {"冰凍🧊", 1.2, 0, 3, 60},
+            {"爆裂擊🧨", 2.5, 0, 4, 100},
+            {"蘑菇彈", 3.0, 0, 5, 150},
+            {"熔岩擊", 2.5, 0, 6, 200}
+        };
 
             printf("選擇技能:\n");
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < 7; i++) {
                 if (player->skills[i]) {
                     printf("%d. %s (%.0f%% 傷害) - 使用時消耗 %d mp\n", i + 1, skills[i].name, skills[i].attack_multiplier * 100, skills[i].mp);
                 }
@@ -247,7 +248,7 @@ void battle(Player *player) {
             int skill_choice;
             scanf("%d", &skill_choice);
 
-            if (skill_choice >= 1 && skill_choice <= 5 && player->skills[skill_choice - 1]) {
+            if (skill_choice >= 1 && skill_choice <= 7 && player->skills[skill_choice - 1]) {
                 if (skills[skill_choice - 1].mp <= player->mp) {
                     player->mp -= skills[skill_choice - 1].mp;
                     if (skills[skill_choice - 1].heal > 0) {
@@ -331,12 +332,17 @@ void buy_weapon(Player *player) {
         {"銅劍", 4, 40},
         {"鐵劍", 6, 60},
         {"鋼劍", 10, 100},
-        {"魔劍", 20, 200}
+        {"鑽劍", 20, 200},
+        {"螢光劍", 30, 300},
+        {"蘑菇劍", 40, 400}
     };
+
+    int available_weapons = player->stage * 2 + 1;
+    if (available_weapons > 7) available_weapons = 7;
 
     printf("選擇武器:\n");
     int available = 0;
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < available_weapons; i++) {
         int already_owned = 0;
         for (int j = 0; j < 6; j++) {
             if (strcmp(player->inventory[j].name, weapons[i].name) == 0) {
@@ -358,7 +364,7 @@ void buy_weapon(Player *player) {
     int w_choice;
     scanf("%d", &w_choice);
 
-    if (w_choice >= 1 && w_choice <= 5) {
+    if (w_choice >= 1 && w_choice <= available_weapons) {
         int already_owned = 0;
         for (int j = 0; j < 6; j++) {
             if (strcmp(player->inventory[j].name, weapons[w_choice - 1].name) == 0) {
@@ -390,12 +396,17 @@ void buy_skill(Player *player) {
         {"雷擊⚡", 2.0, 0, 3, 80},
         {"治癒🏥", 0.0, 30, 2, 70},
         {"冰凍🧊", 1.2, 0, 3, 60},
-        {"爆裂擊🧨", 2.5, 0, 4, 100}
+        {"爆裂擊🧨", 2.5, 0, 4, 100},
+        {"蘑菇彈", 3.0, 0, 5, 150},
+        {"熔岩擊", 2.5, 0, 6, 200}
     };
+
+    int available_skills = player->stage * 2 + 1;
+    if (available_skills > 7) available_skills = 7;
 
     printf("選擇技能:\n");
     int available = 0;
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < available_skills; i++) {
         if (player->skills[i] == 0) {
             printf("%d. %s (%.0f%% 傷害) - %d  - 使用時消耗 %d mp\n", i + 1, skills[i].name, skills[i].attack_multiplier * 100, skills[i].price, skills[i].mp);
             available = 1;
@@ -409,7 +420,7 @@ void buy_skill(Player *player) {
 
     int s_choice;
     scanf("%d", &s_choice);
-    if (s_choice >= 1 && s_choice <= 5) {
+    if (s_choice >= 1 && s_choice <= available_skills) {
         if (player->skills[s_choice - 1] == 1) {  // **防止購買已學會的技能**
             printf("你已經學會 %s，不能再買！\n", skills[s_choice - 1].name);
         } else if (player->gold >= skills[s_choice - 1].price) {
@@ -447,8 +458,16 @@ void equip_weapon(Player *player) {
         scanf("%d", &position_choice);
 
         if (position_choice == 1) {
+            if (player->equipped_weapon_index[0] == equip_choice - 1) {
+                printf("這個武器已經裝備在第一個位置了！\n");
+                return;
+            }
             player->equipped_weapon_index[0] = equip_choice - 1;
         } else if (position_choice == 2) {
+            if (player->equipped_weapon_index[1] == equip_choice - 1) {
+                printf("這個武器已經裝備在第二個位置了！\n");
+                return;
+            }
             player->equipped_weapon_index[1] = equip_choice - 1;
         } else {
             printf("無效選擇!\n");
@@ -516,12 +535,12 @@ void explore(Player *player) {
         printf("你發現了一個寶箱! 內有 %d 金幣!\n", gold_found);
         player->gold += gold_found;
     } else if (event == 2) {
-        int hp_found = (rand() % 40) + 10; 
+        int hp_found = (rand() % 40) + 10;
         printf("你發現了一個無人的營帳! \n你在裡面休息了一晚上，回復了 %d HP❤️!\n", hp_found);
         player->hp += hp_found;
         if (player->hp > player->max_hp) player->hp = player->max_hp;
     } else if (event == 3) {
-        int mp_found = (rand() % 2) + 1; 
+        int mp_found = (rand() % 2) + 1;
         printf("你發現了一個無人的營帳! \n你在裡面休息了一晚上，回復了 %d MP🪄!\n", mp_found);
         player->mp += mp_found;
         if (player->mp > player->max_mp) player->mp = player->max_mp;
