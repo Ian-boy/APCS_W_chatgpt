@@ -60,12 +60,12 @@ void init_player(Player *player) {
     player->max_hp = 100;
     player->base_attack = 10;
     player->attack = 10;
-    player->gold = 50000;
+    player->gold = 50;
     player->exp = 0;
     player->next_level_exp = 100;
     player->key = 0;
     player->base_key = 0;
-    player->stage = 2;
+    player->stage = 1;
     player->mp = 10;
     player->max_mp = 10;
     player->day = 1;
@@ -233,12 +233,10 @@ void battle(Player *player) {
             {"治癒🏥", 0.0, 30, 2, 70},
             {"冰凍🧊", 1.2, 0, 3, 60},
             {"爆裂擊🧨", 2.5, 0, 4, 100},
-            {"蘑菇彈", 3.0, 0, 5, 150},
-            {"熔岩擊", 2.5, 0, 6, 200}
         };
 
             printf("選擇技能:\n");
-            for (int i = 0; i < 7; i++) {
+            for (int i = 0; i < 5; i++) {
                 if (player->skills[i]) {
                     printf("%d. %s (%.0f%% 傷害) - 使用時消耗 %d mp\n", i + 1, skills[i].name, skills[i].attack_multiplier * 100, skills[i].mp);
                 }
@@ -248,7 +246,7 @@ void battle(Player *player) {
             int skill_choice;
             scanf("%d", &skill_choice);
 
-            if (skill_choice >= 1 && skill_choice <= 7 && player->skills[skill_choice - 1]) {
+            if (skill_choice >= 1 && skill_choice <= 5 && player->skills[skill_choice - 1]) {
                 if (skills[skill_choice - 1].mp <= player->mp) {
                     player->mp -= skills[skill_choice - 1].mp;
                     if (skills[skill_choice - 1].heal > 0) {
@@ -397,8 +395,6 @@ void buy_skill(Player *player) {
         {"治癒🏥", 0.0, 30, 2, 70},
         {"冰凍🧊", 1.2, 0, 3, 60},
         {"爆裂擊🧨", 2.5, 0, 4, 100},
-        {"蘑菇彈", 3.0, 0, 5, 150},
-        {"熔岩擊", 2.5, 0, 6, 200}
     };
 
     int available_skills = player->stage * 2 + 1;
